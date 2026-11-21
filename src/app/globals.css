@@ -46,6 +46,16 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  --color-bg-canvas: var(--bg-canvas);
+  --color-bg-surface-card: var(--bg-surface-card);
+  --color-bg-surface-dark: var(--bg-surface-dark);
+  --color-bg-accent-brand: var(--bg-accent-brand);
+  --color-fg-primary: var(--fg-primary);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-inverse: var(--fg-inverse);
+  --color-fg-on-accent: var(--fg-on-accent);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-focus: var(--border-focus);
 }
 
 :root {
@@ -81,6 +91,16 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  --bg-canvas: #f1e7df;
+  --bg-surface-card: #ffffff;
+  --bg-surface-dark: #000000;
+  --bg-accent-brand: #d9842f;
+  --fg-primary: #333333;
+  --fg-muted: #666666;
+  --fg-inverse: #ffffff;
+  --fg-on-accent: #212529;
+  --border-subtle: rgba(102, 102, 102, 0.2);
+  --border-focus: #d9842f;
 }
 
 .dark {

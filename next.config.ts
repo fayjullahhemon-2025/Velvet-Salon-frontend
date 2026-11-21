@@ -5,6 +5,15 @@ const nextConfig: NextConfig = {
   experimental: {
     agentFeedback: true,
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "i.ibb.co.com",
+        pathname: "/**",
+      },
+    ],
+  },
   cacheComponents: true,
   partialPrefetching: true,
   reactCompiler: true,
