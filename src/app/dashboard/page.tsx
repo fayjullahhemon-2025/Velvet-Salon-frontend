@@ -2,6 +2,7 @@ import {
   CalendarClock,
   CheckCircle2,
   Clock,
+  ShieldAlert,
   Sparkles,
   XCircle,
 } from "lucide-react";
@@ -26,11 +27,20 @@ export const metadata: Metadata = {
   description: "Overview of your salon appointment requests and bookings.",
 };
 
-export default async function CustomerDashboardPage() {
+interface CustomerDashboardPageProps {
+  searchParams?: Promise<{ error?: string }>;
+}
+
+export default async function CustomerDashboardPage({
+  searchParams,
+}: CustomerDashboardPageProps) {
   const session = await requireCustomerSession().catch(() => null);
   if (!session?.user) {
     redirect("/signin");
   }
+
+  const resolvedParams = searchParams ? await searchParams : {};
+  const isUnauthorized = resolvedParams.error === "unauthorized";
 
   let appointments: Awaited<ReturnType<typeof getCustomerAppointments>> = [];
   try {
@@ -76,6 +86,18 @@ export default async function CustomerDashboardPage() {
 
   return (
     <div className="space-y-6">
+      {/* Unauthorized Access Warning Banner */}
+      {isUnauthorized ? (
+        <div className="flex items-center gap-3 rounded-xl border border-amber-600/30 bg-amber-500/10 p-4 text-xs text-amber-900">
+          <ShieldAlert className="size-5 text-amber-600 shrink-0" />
+          <div>
+            <span className="font-bold">Access Restricted: </span>
+            Administrator privileges are required to view that area. You have
+            been safely routed back to your customer dashboard.
+          </div>
+        </div>
+      ) : null}
+
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-fg-primary">

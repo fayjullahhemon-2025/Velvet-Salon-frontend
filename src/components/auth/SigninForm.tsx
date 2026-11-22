@@ -2,7 +2,7 @@
 
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import { toast } from "sonner";
 import GoogleButton from "@/components/auth/GoogleButton";
@@ -33,6 +33,8 @@ type FieldErrors = {
 
 export default function SigninForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams?.get("callbackUrl");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -77,7 +79,21 @@ export default function SigninForm() {
       }
 
       toast.success("Signed in successfully.");
-      router.push(getHomeForRole(data?.user));
+      const defaultHome = getHomeForRole(data?.user);
+      let targetUrl = defaultHome;
+
+      // Handle dynamic post-login redirect for callback URLs (e.g. /services/[id])
+      if (callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//")) {
+        const isAdminRoute =
+          callbackUrl.startsWith("/dashboard/admin") ||
+          callbackUrl.startsWith("/dashboard/manage-");
+        const userIsAdmin = (data?.user as { role?: string })?.role === "admin";
+        if (!isAdminRoute || userIsAdmin) {
+          targetUrl = callbackUrl;
+        }
+      }
+
+      router.push(targetUrl);
       router.refresh();
     } catch (error) {
       toast.error(
@@ -93,9 +109,13 @@ export default function SigninForm() {
   const handleGoogle = async () => {
     if (submitting || googlePending) return;
     setGooglePending(true);
+    const callbackTarget = callbackUrl
+      ? `/auth/redirect?callbackUrl=${encodeURIComponent(callbackUrl)}`
+      : "/auth/redirect";
+
     const { error } = await signIn.social({
       provider: "google",
-      callbackURL: "/auth/redirect",
+      callbackURL: callbackTarget,
     });
     if (error) {
       setGooglePending(false);
