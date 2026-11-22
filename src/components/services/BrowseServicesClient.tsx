@@ -3,7 +3,8 @@
 import { Clock, Filter, Scissors, Search, Sparkles } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,16 +20,35 @@ import { SERVICE_CATEGORIES, type Service } from "@/types/service";
 
 interface BrowseServicesClientProps {
   initialServices: Service[];
+  initialCategory?: string;
 }
 
 export function BrowseServicesClient({
   initialServices,
+  initialCategory,
 }: BrowseServicesClientProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Prefer URL search parameter, falling back to initialCategory or 'all'
+  const categoryFromUrl =
+    searchParams?.get("category") || initialCategory || "all";
+
   const [search, setSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState(categoryFromUrl);
   const [sortOrder, setSortOrder] = useState<
     "default" | "price_asc" | "price_desc" | "duration_asc"
   >("default");
+
+  // React immediately whenever URL search parameters change without requiring a page reload
+  useEffect(() => {
+    const currentParam = searchParams?.get("category");
+    if (currentParam) {
+      setSelectedCategory(currentParam);
+    } else {
+      setSelectedCategory(initialCategory || "all");
+    }
+  }, [searchParams, initialCategory]);
 
   // Filter only active services (guardrail: inactive services are NEVER shown to the public)
   const activeServices = useMemo(() => {
@@ -37,7 +57,11 @@ export function BrowseServicesClient({
 
   const displayedServices = useMemo(() => {
     let result = activeServices.filter((service) => {
-      if (selectedCategory !== "all" && service.category !== selectedCategory) {
+      if (
+        selectedCategory !== "all" &&
+        service.category.trim().toLowerCase() !==
+          selectedCategory.trim().toLowerCase()
+      ) {
         return false;
       }
       if (search.trim()) {
@@ -61,6 +85,21 @@ export function BrowseServicesClient({
     return result;
   }, [activeServices, search, selectedCategory, sortOrder]);
 
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+    const params = new URLSearchParams(
+      searchParams ? searchParams.toString() : "",
+    );
+    if (category === "all") {
+      params.delete("category");
+    } else {
+      params.set("category", category);
+    }
+    const queryString = params.toString();
+    const newUrl = queryString ? `/services?${queryString}` : "/services";
+    router.replace(newUrl, { scroll: false });
+  };
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       {/* Header */}
@@ -79,7 +118,7 @@ export function BrowseServicesClient({
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="mb-8 flex flex-col gap-3 rounded-xl border border-border-subtle bg-bg-surface-card p-4 sm:flex-row sm:items-center sm:justify-between shadow-xs">
+      <div className="mb-6 flex flex-col gap-3 rounded-xl border border-border-subtle bg-bg-surface-card p-4 sm:flex-row sm:items-center sm:justify-between shadow-xs">
         {/* Search */}
         <div className="relative flex-1 sm:max-w-xs">
           <Search
@@ -100,7 +139,7 @@ export function BrowseServicesClient({
             <Filter className="size-3.5 text-fg-muted" aria-hidden />
             <select
               value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
+              onChange={(e) => handleCategoryChange(e.target.value)}
               className="rounded-md border border-border-subtle bg-bg-surface-card px-3 py-1.5 text-xs text-fg-primary outline-none focus:border-border-focus"
             >
               <option value="all">All Categories</option>
@@ -132,6 +171,29 @@ export function BrowseServicesClient({
           </select>
         </div>
       </div>
+
+      {/* Active Category Filter Indicator */}
+      {selectedCategory !== "all" ? (
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border-subtle bg-bg-surface-card px-4 py-3 shadow-xs">
+          <div className="flex items-center gap-2 text-sm text-fg-primary">
+            <span className="text-fg-muted">Showing category:</span>
+            <Badge className="bg-bg-accent-brand text-fg-on-accent font-semibold px-2.5 py-0.5">
+              {selectedCategory}
+            </Badge>
+            <span className="text-xs text-fg-muted">
+              ({displayedServices.length}{" "}
+              {displayedServices.length === 1 ? "service" : "services"} found)
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => handleCategoryChange("all")}
+            className="text-xs font-semibold text-fg-muted hover:text-fg-primary underline underline-offset-4 transition-colors"
+          >
+            Show All Categories
+          </button>
+        </div>
+      ) : null}
 
       {/* Services Grid */}
       {displayedServices.length === 0 ? (

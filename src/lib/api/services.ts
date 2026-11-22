@@ -14,7 +14,9 @@ const BACKEND_URL =
 /**
  * Normalizes a raw service document from MongoDB or API response.
  */
-function normalizeService(raw: Record<string, unknown> & { _id: unknown }): Service {
+function normalizeService(
+  raw: Record<string, unknown> & { _id: unknown },
+): Service {
   return {
     _id: String(raw._id),
     serviceName: String(raw.serviceName ?? ""),

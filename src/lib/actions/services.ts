@@ -2,6 +2,12 @@
 
 import { ObjectId } from "mongodb";
 import { revalidatePath } from "next/cache";
+import {
+  getFeaturedServices,
+  getServiceById,
+  getServices,
+  getSortedServices,
+} from "@/lib/api/services";
 import { requireAdminSession } from "@/lib/core/server";
 import { getDb } from "@/lib/db";
 import type {
@@ -11,12 +17,6 @@ import type {
   ServiceSortOption,
   ServiceStatus,
 } from "@/types/service";
-import {
-  getFeaturedServices,
-  getServiceById,
-  getServices,
-  getSortedServices,
-} from "@/lib/api/services";
 
 const BACKEND_URL =
   process.env.BACKEND_URL ||
@@ -290,4 +290,41 @@ export async function deleteService(id: string) {
   revalidatePath("/");
 
   return { success: true, message: "Service deleted successfully." };
+}
+
+/**
+ * Server action to fetch 6 (or custom limit) active featured services through the API.
+ */
+export async function fetchFeaturedServicesAction(
+  limit = 6,
+): Promise<Service[]> {
+  return getFeaturedServices(limit);
+}
+
+/**
+ * Server action to fetch service data by ID through the API.
+ */
+export async function fetchServiceByIdAction(
+  id: string,
+): Promise<Service | null> {
+  return getServiceById(id);
+}
+
+/**
+ * Server action to fetch and sort services through the API.
+ */
+export async function fetchSortedServicesAction(
+  sort: ServiceSortOption,
+  extraParams?: Omit<ServiceFilterParams, "sort">,
+): Promise<Service[]> {
+  return getSortedServices(sort, extraParams);
+}
+
+/**
+ * Server action to fetch services with arbitrary filtering/sorting through the API.
+ */
+export async function fetchServicesAction(
+  params?: ServiceFilterParams,
+): Promise<Service[]> {
+  return getServices(params);
 }
