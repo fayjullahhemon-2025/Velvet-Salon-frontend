@@ -51,7 +51,7 @@ export function getHomeForRole(user: unknown): string {
     "role" in user &&
     (user as { role?: unknown }).role === "admin"
   ) {
-    return "/admin";
+    return "/dashboard/admin";
   }
-  return "/";
+  return "/dashboard";
 }

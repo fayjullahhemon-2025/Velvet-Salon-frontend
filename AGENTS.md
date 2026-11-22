@@ -174,3 +174,38 @@ Follow the semantic design tokens strictly so contrast and visual hierarchy rema
 
 - Separate client and server repos; keep `README.md` current; never commit `.env`.
 - Target: ≥20 meaningful client commits with descriptive messages.
+## Database Architecture
+Use MongoDB. Better Auth manages its own authentication-related collections. Use the following four main collections and proper references between collections. Do not create unnecessary collections for the same information.
+1.users (Better Auth)
+name
+email
+image
+role
+isBlocked
+2.services
+serviceName
+category
+description
+price
+duration
+image
+status (active or inactive)
+createdAt
+3.appointments
+serviceId
+customerId
+appointmentDate
+timeSlot
+message
+servicePrice
+paymentStatus(unpaid or paid)
+status(pending, confirmed or cancelled)
+createdAt
+4.transactions
+appointmentId
+customerId
+amount
+currency
+stripeSessionId
+status(paid or failed)
+createdAt
