@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,35 +16,59 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { getCustomerAppointments } from "@/lib/api/appointments";
+import { requireCustomerSession } from "@/lib/core/server";
+
+export const instant = false;
 
 export const metadata: Metadata = {
   title: "Customer Overview | Velvet Saloon",
   description: "Overview of your salon appointment requests and bookings.",
 };
 
-export default function CustomerDashboardPage() {
+export default async function CustomerDashboardPage() {
+  const session = await requireCustomerSession().catch(() => null);
+  if (!session?.user) {
+    redirect("/signin");
+  }
+
+  let appointments: Awaited<ReturnType<typeof getCustomerAppointments>> = [];
+  try {
+    appointments = await getCustomerAppointments(
+      session.user.id,
+      session.user.email,
+    );
+  } catch (error) {
+    console.error("Failed to load customer appointments for overview:", error);
+  }
+
+  const total = appointments.length;
+  const pending = appointments.filter((a) => a.status === "pending").length;
+  const confirmed = appointments.filter((a) => a.status === "confirmed").length;
+  const cancelled = appointments.filter((a) => a.status === "cancelled").length;
+
   const stats = [
     {
       label: "Total Requests",
-      value: "0",
+      value: String(total),
       icon: CalendarClock,
       description: "All appointments booked",
     },
     {
       label: "Pending",
-      value: "0",
+      value: String(pending),
       icon: Clock,
       description: "Awaiting salon confirmation",
     },
     {
       label: "Confirmed",
-      value: "0",
+      value: String(confirmed),
       icon: CheckCircle2,
       description: "Ready for your visit",
     },
     {
       label: "Cancelled",
-      value: "0",
+      value: String(cancelled),
       icon: XCircle,
       description: "Cancelled bookings",
     },

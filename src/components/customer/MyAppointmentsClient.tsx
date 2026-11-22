@@ -4,11 +4,9 @@ import {
   AlertCircle,
   Calendar,
   CalendarCheck,
-  CheckCircle2,
   Clock,
   CreditCard,
   Eye,
-  Info,
   Loader2,
   RefreshCw,
   Search,
@@ -34,6 +32,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { cancelCustomerAppointmentAction } from "@/lib/actions/appointments";
+import { createCheckoutSessionAction } from "@/lib/actions/payment";
 import type { Appointment, AppointmentStatus } from "@/types/appointment";
 
 interface MyAppointmentsClientProps {
@@ -61,9 +60,10 @@ export function MyAppointmentsClient({
     useState<Appointment | null>(null);
   const [isCancellingPending, startCancelTransition] = useTransition();
 
-  // Payment notice dialog state
-  const [payingAppointment, setPayingAppointment] =
-    useState<Appointment | null>(null);
+  // Payment processing state
+  const [payingAppointmentId, setPayingAppointmentId] = useState<string | null>(
+    null,
+  );
 
   // Compute live statistics
   const stats = useMemo(() => {
@@ -148,7 +148,7 @@ export function MyAppointmentsClient({
     });
   };
 
-  const handlePayNow = (appointment: Appointment) => {
+  const handlePayNow = async (appointment: Appointment) => {
     // Rule: Customers cannot pay for cancelled or pending appointments.
     if (appointment.status !== "confirmed") {
       toast.error("You can only pay for confirmed appointments.");
@@ -158,7 +158,26 @@ export function MyAppointmentsClient({
       toast.info("This appointment has already been paid for.");
       return;
     }
-    setPayingAppointment(appointment);
+
+    setPayingAppointmentId(appointment._id);
+    const toastId = toast.loading("Redirecting to secure Stripe checkout…");
+
+    try {
+      const result = await createCheckoutSessionAction(appointment._id);
+      if (result.success && result.url) {
+        window.location.href = result.url;
+      } else {
+        toast.dismiss(toastId);
+        toast.error(result.error || "Failed to initiate payment checkout.");
+        setPayingAppointmentId(null);
+      }
+    } catch (err) {
+      toast.dismiss(toastId);
+      toast.error(
+        err instanceof Error ? err.message : "Payment checkout error occurred.",
+      );
+      setPayingAppointmentId(null);
+    }
   };
 
   const openDetails = (appointment: Appointment) => {
@@ -477,11 +496,21 @@ export function MyAppointmentsClient({
                           {isConfirmed && isUnpaid ? (
                             <Button
                               size="sm"
+                              disabled={payingAppointmentId === app._id}
                               onClick={() => handlePayNow(app)}
                               className="h-7 px-2.5 bg-bg-accent-brand text-fg-on-accent hover:opacity-90 text-[11px] font-semibold"
                             >
-                              <CreditCard className="size-3 mr-1" />
-                              Pay Now
+                              {payingAppointmentId === app._id ? (
+                                <>
+                                  <Loader2 className="size-3 mr-1 animate-spin" />
+                                  Redirecting…
+                                </>
+                              ) : (
+                                <>
+                                  <CreditCard className="size-3 mr-1" />
+                                  Pay Now
+                                </>
+                              )}
                             </Button>
                           ) : null}
 
@@ -586,65 +615,6 @@ export function MyAppointmentsClient({
               ) : (
                 "Confirm Cancellation"
               )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Pay Now Information Dialog */}
-      <Dialog
-        open={Boolean(payingAppointment)}
-        onOpenChange={(open) => !open && setPayingAppointment(null)}
-      >
-        <DialogContent className="max-w-md bg-bg-surface-card border-border-subtle">
-          <DialogHeader>
-            <DialogTitle className="text-base font-bold text-fg-primary flex items-center gap-2">
-              <CreditCard className="size-5 text-bg-accent-brand" />
-              Pay for Confirmed Appointment
-            </DialogTitle>
-            <DialogDescription className="text-xs text-fg-muted mt-1">
-              {payingAppointment?.serviceName} • Total Amount: $
-              {payingAppointment?.servicePrice.toFixed(2)}
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-3 py-2 text-xs">
-            <div className="rounded-xl border border-emerald-600/20 bg-emerald-50/60 p-3.5 text-emerald-800">
-              <div className="flex items-center gap-2 font-semibold">
-                <CheckCircle2 className="size-4 text-emerald-600" />
-                <span>Slot Confirmed by Salon Staff</span>
-              </div>
-              <p className="mt-1 text-emerald-700">
-                Your appointment on {payingAppointment?.appointmentDate} at{" "}
-                {payingAppointment?.timeSlot} is confirmed.
-              </p>
-            </div>
-
-            <div className="rounded-xl border border-border-subtle bg-bg-canvas/50 p-3.5 text-fg-muted">
-              <div className="flex items-center gap-1.5 font-semibold text-fg-primary mb-1">
-                <Info className="size-4 text-bg-accent-brand" />
-                Payment Notice
-              </div>
-              <p className="leading-relaxed">
-                Online payment gateway will be enabled soon. You can pay
-                securely at the salon reception during your appointment via
-                cash, card, or digital wallet.
-              </p>
-            </div>
-          </div>
-
-          <DialogFooter className="pt-2">
-            <Button
-              type="button"
-              className="w-full bg-bg-accent-brand text-fg-on-accent font-semibold text-xs"
-              onClick={() => {
-                toast.info(
-                  "Online payment gateway integration will be active soon. Please settle at the salon reception upon visit.",
-                );
-                setPayingAppointment(null);
-              }}
-            >
-              Acknowledge & Close
             </Button>
           </DialogFooter>
         </DialogContent>

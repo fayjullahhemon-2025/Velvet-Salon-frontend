@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -17,47 +18,97 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { requireAdminSession } from "@/lib/core/server";
+import { getDb } from "@/lib/db";
+
+export const instant = false;
 
 export const metadata: Metadata = {
   title: "Admin Overview | Velvet Saloon",
   description: "Salon management overview and operational statistics.",
 };
 
-export default function AdminDashboardPage() {
+export default async function AdminDashboardPage() {
+  const session = await requireAdminSession().catch(() => null);
+  if (!session?.user) {
+    redirect("/signin");
+  }
+
+  let customerCount = 0;
+  let activeServicesCount = 0;
+  let totalAppointmentsCount = 0;
+  let pendingAppointmentsCount = 0;
+  let confirmedAppointmentsCount = 0;
+  let successfulPaymentsCount = 0;
+
+  try {
+    const db = await getDb();
+    const [
+      customers,
+      activeServices,
+      totalAppointments,
+      pendingAppointments,
+      confirmedAppointments,
+      successfulPayments,
+    ] = await Promise.all([
+      db
+        .collection("users")
+        .countDocuments({ role: "customer" })
+        .then(async (c) => {
+          if (c > 0) return c;
+          return db.collection("user").countDocuments({ role: "customer" });
+        }),
+      db.collection("services").countDocuments({ status: "active" }),
+      db.collection("appointments").countDocuments({}),
+      db.collection("appointments").countDocuments({ status: "pending" }),
+      db.collection("appointments").countDocuments({ status: "confirmed" }),
+      db.collection("transactions").countDocuments({ status: "paid" }),
+    ]);
+
+    customerCount = customers;
+    activeServicesCount = activeServices;
+    totalAppointmentsCount = totalAppointments;
+    pendingAppointmentsCount = pendingAppointments;
+    confirmedAppointmentsCount = confirmedAppointments;
+    successfulPaymentsCount = successfulPayments;
+  } catch (error) {
+    console.error("Failed to load admin overview stats:", error);
+  }
+
   const stats = [
     {
       label: "Registered Customers",
-      value: "0",
+      value: String(customerCount),
       icon: Users,
       description: "Active customer accounts",
     },
     {
       label: "Active Services",
-      value: "0",
+      value: String(activeServicesCount),
       icon: Scissors,
       description: "Available salon services",
     },
     {
       label: "Appointment Requests",
-      value: "0",
+      value: String(totalAppointmentsCount),
       icon: CalendarClock,
       description: "Total bookings submitted",
     },
     {
       label: "Pending Appointments",
-      value: "0",
+      value: String(pendingAppointmentsCount),
       icon: Clock,
       description: "Require salon review",
     },
     {
       label: "Confirmed Appointments",
-      value: "0",
+      value: String(confirmedAppointmentsCount),
       icon: CheckCircle2,
       description: "Scheduled for service",
     },
     {
       label: "Successful Payments",
-      value: "0",
+      value: String(successfulPaymentsCount),
       icon: CreditCard,
       description: "Completed Stripe payments",
     },
