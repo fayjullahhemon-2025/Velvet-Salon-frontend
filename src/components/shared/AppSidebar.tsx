@@ -7,7 +7,6 @@ import {
   LogOut,
   Receipt,
   Scissors,
-  Sparkles,
   Store,
   User,
   Users,
@@ -95,7 +94,7 @@ export const CUSTOMER_NAV_ITEMS: NavItem[] = [
 
   {
     title: "My Profile",
-    href: "/dashboard/profile",
+    href: "/dashboard/customer/profile",
     icon: User,
   },
 ];
