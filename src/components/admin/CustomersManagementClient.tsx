@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { toggleUserBlockStatusAction } from "@/lib/actions/users";
+import { getTokenFromClient } from "@/lib/getTokenFromClient";
 import type { UserProfile } from "@/types/user";
 
 interface CustomersManagementClientProps {
@@ -92,9 +93,11 @@ export function CustomersManagementClient({
 
     startTransition(async () => {
       try {
+        const token = await getTokenFromClient().catch(() => undefined);
         const res = await toggleUserBlockStatusAction(
           targetToggleUser._id,
           newBlockedState,
+          token,
         );
         if (res.success) {
           toast.success(res.message);

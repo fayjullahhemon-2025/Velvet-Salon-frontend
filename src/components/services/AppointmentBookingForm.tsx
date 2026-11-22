@@ -23,6 +23,7 @@ import {
   createAppointmentAction,
   fetchBookedSlotsAction,
 } from "@/lib/actions/appointments";
+import { getTokenFromClient } from "@/lib/getTokenFromClient";
 import { APPOINTMENT_TIME_SLOTS, type Appointment } from "@/types/appointment";
 import type { Service } from "@/types/service";
 
@@ -127,11 +128,13 @@ export function AppointmentBookingForm({
 
     startTransition(async () => {
       try {
+        const clientToken = await getTokenFromClient().catch(() => undefined);
         const result = await createAppointmentAction({
           serviceId: service._id,
           appointmentDate,
           timeSlot: selectedSlot,
           message: message.trim(),
+          token: clientToken,
         });
 
         if (result?.success) {

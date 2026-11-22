@@ -29,6 +29,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { updateUserProfileAction } from "@/lib/actions/users";
+import { getTokenFromClient } from "@/lib/getTokenFromClient";
 import type { UserProfile } from "@/types/user";
 
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -125,12 +126,14 @@ export function ProfileFormClient({
 
     startTransition(async () => {
       try {
+        const clientToken = await getTokenFromClient().catch(() => undefined);
         const finalImage = imageUrl.trim() || "";
 
         const result = await updateUserProfileAction({
           name: name.trim(),
           image: finalImage,
           phone: phone.trim(),
+          token: clientToken,
         });
 
         if (result?.success) {

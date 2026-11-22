@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toggleServiceStatus } from "@/lib/actions/services";
+import { getTokenFromClient } from "@/lib/getTokenFromClient";
 import {
   SERVICE_CATEGORIES,
   type Service,
@@ -110,7 +111,8 @@ export function ServicesManagementClient({
       service.status === "active" ? "inactive" : "active";
     startTransition(async () => {
       try {
-        await toggleServiceStatus(service._id, nextStatus);
+        const token = await getTokenFromClient().catch(() => undefined);
+        await toggleServiceStatus(service._id, nextStatus, token);
         toast.success(
           `Service "${service.serviceName}" is now ${nextStatus === "active" ? "Active (visible to public)" : "Inactive (hidden)"}.`,
         );

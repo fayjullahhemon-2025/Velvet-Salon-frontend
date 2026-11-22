@@ -16,6 +16,7 @@ export interface UpdateProfileInput {
   name?: string;
   image?: string;
   phone?: string;
+  token?: string;
 }
 
 export interface UserFilterParams {

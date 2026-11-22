@@ -39,6 +39,7 @@ export interface CreateAppointmentInput {
   appointmentDate: string;
   timeSlot: string;
   message?: string;
+  token?: string;
 }
 
 export interface AppointmentFilterParams {

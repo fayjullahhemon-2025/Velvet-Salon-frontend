@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { updateAppointmentStatusAction } from "@/lib/actions/appointments";
+import { getTokenFromClient } from "@/lib/getTokenFromClient";
 import type { Appointment, AppointmentStatus } from "@/types/appointment";
 
 interface AppointmentsManagementClientProps {
@@ -118,9 +119,11 @@ export function AppointmentsManagementClient({
 
     startTransition(async () => {
       try {
+        const token = await getTokenFromClient().catch(() => undefined);
         const res = await updateAppointmentStatusAction(
           appointmentId,
           newStatus,
+          token,
         );
         if (res.success) {
           toast.success(

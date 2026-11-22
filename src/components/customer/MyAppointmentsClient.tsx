@@ -33,6 +33,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { cancelCustomerAppointmentAction } from "@/lib/actions/appointments";
 import { createCheckoutSessionAction } from "@/lib/actions/payment";
+import { getTokenFromClient } from "@/lib/getTokenFromClient";
 import type { Appointment, AppointmentStatus } from "@/types/appointment";
 
 interface MyAppointmentsClientProps {
@@ -117,8 +118,10 @@ export function MyAppointmentsClient({
 
     startCancelTransition(async () => {
       try {
+        const clientToken = await getTokenFromClient().catch(() => undefined);
         const res = await cancelCustomerAppointmentAction(
           cancellingAppointment._id,
+          clientToken,
         );
         if (res.success) {
           toast.success(

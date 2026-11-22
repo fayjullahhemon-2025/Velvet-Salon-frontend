@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createService, updateService } from "@/lib/actions/services";
+import { getTokenFromClient } from "@/lib/getTokenFromClient";
 import {
   SERVICE_CATEGORIES,
   type Service,
@@ -189,11 +190,12 @@ export function ServiceFormDialog({
         status,
       };
 
+      const token = await getTokenFromClient().catch(() => undefined);
       if (isEditing && serviceToEdit) {
-        await updateService(serviceToEdit._id, payload);
+        await updateService(serviceToEdit._id, payload, token);
         toast.success("Service updated successfully.");
       } else {
-        await createService(payload);
+        await createService(payload, token);
         toast.success("Service created successfully.");
       }
 

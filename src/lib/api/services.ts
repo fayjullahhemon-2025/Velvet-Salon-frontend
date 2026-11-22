@@ -1,5 +1,6 @@
 import { ObjectId } from "mongodb";
 import { getDb } from "@/lib/db";
+import { getTokenFromServer } from "@/lib/getTokenFromServer";
 import type {
   Service,
   ServiceFilterParams,
@@ -87,7 +88,14 @@ export async function getServiceById(id: string): Promise<Service | null> {
   if (!id) return null;
 
   try {
+    const token = await getTokenFromServer().catch(() => null);
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers.authorization = `Bearer ${token}`;
+    }
+
     const res = await fetch(`${BACKEND_URL}/api/services/${id}`, {
+      headers,
       next: { revalidate: 0 },
     });
     if (res.ok) {

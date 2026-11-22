@@ -10,6 +10,7 @@ import {
 } from "@/lib/api/services";
 import { requireAdminSession } from "@/lib/core/server";
 import { getDb } from "@/lib/db";
+import { getTokenFromServer } from "@/lib/getTokenFromServer";
 import type {
   Service,
   ServiceFilterParams,
@@ -27,7 +28,10 @@ const BACKEND_URL =
  * Server action to create a new service.
  * Enforces admin authorization, positive price, and positive duration.
  */
-export async function createService(input: ServiceInput) {
+export async function createService(
+  input: ServiceInput,
+  optionalToken?: string,
+) {
   const session = await requireAdminSession();
 
   if (!input.serviceName?.trim()) {
@@ -68,13 +72,20 @@ export async function createService(input: ServiceInput) {
   };
 
   try {
+    const token =
+      optionalToken || (await getTokenFromServer().catch(() => null));
+    const reqHeaders: Record<string, string> = {
+      "Content-Type": "application/json",
+      "x-user-role": "admin",
+      "x-user-email": session.user.email,
+    };
+    if (token) {
+      reqHeaders.authorization = `Bearer ${token}`;
+    }
+
     const res = await fetch(`${BACKEND_URL}/api/services`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-user-role": "admin",
-        "x-user-email": session.user.email,
-      },
+      headers: reqHeaders,
       body: JSON.stringify(newDoc),
     });
     if (res.ok) {
@@ -101,7 +112,11 @@ export async function createService(input: ServiceInput) {
  * Server action to update an existing service.
  * Enforces admin authorization, positive price, and positive duration.
  */
-export async function updateService(id: string, input: Partial<ServiceInput>) {
+export async function updateService(
+  id: string,
+  input: Partial<ServiceInput>,
+  optionalToken?: string,
+) {
   const session = await requireAdminSession();
 
   if (!id || !ObjectId.isValid(id)) {
@@ -157,13 +172,20 @@ export async function updateService(id: string, input: Partial<ServiceInput>) {
   }
 
   try {
+    const token =
+      optionalToken || (await getTokenFromServer().catch(() => null));
+    const reqHeaders: Record<string, string> = {
+      "Content-Type": "application/json",
+      "x-user-role": "admin",
+      "x-user-email": session.user.email,
+    };
+    if (token) {
+      reqHeaders.authorization = `Bearer ${token}`;
+    }
+
     const res = await fetch(`${BACKEND_URL}/api/services/${id}`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        "x-user-role": "admin",
-        "x-user-email": session.user.email,
-      },
+      headers: reqHeaders,
       body: JSON.stringify(updateDoc),
     });
     if (res.ok) {
@@ -204,6 +226,7 @@ export async function updateService(id: string, input: Partial<ServiceInput>) {
 export async function toggleServiceStatus(
   id: string,
   newStatus: ServiceStatus,
+  optionalToken?: string,
 ) {
   const session = await requireAdminSession();
 
@@ -215,13 +238,20 @@ export async function toggleServiceStatus(
   }
 
   try {
+    const token =
+      optionalToken || (await getTokenFromServer().catch(() => null));
+    const reqHeaders: Record<string, string> = {
+      "Content-Type": "application/json",
+      "x-user-role": "admin",
+      "x-user-email": session.user.email,
+    };
+    if (token) {
+      reqHeaders.authorization = `Bearer ${token}`;
+    }
+
     const res = await fetch(`${BACKEND_URL}/api/services/${id}/status`, {
       method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        "x-user-role": "admin",
-        "x-user-email": session.user.email,
-      },
+      headers: reqHeaders,
       body: JSON.stringify({ status: newStatus }),
     });
     if (res.ok) {
@@ -252,7 +282,7 @@ export async function toggleServiceStatus(
 /**
  * Server action to delete a service.
  */
-export async function deleteService(id: string) {
+export async function deleteService(id: string, optionalToken?: string) {
   const session = await requireAdminSession();
 
   if (!id || !ObjectId.isValid(id)) {
@@ -260,12 +290,19 @@ export async function deleteService(id: string) {
   }
 
   try {
+    const token =
+      optionalToken || (await getTokenFromServer().catch(() => null));
+    const reqHeaders: Record<string, string> = {
+      "x-user-role": "admin",
+      "x-user-email": session.user.email,
+    };
+    if (token) {
+      reqHeaders.authorization = `Bearer ${token}`;
+    }
+
     const res = await fetch(`${BACKEND_URL}/api/services/${id}`, {
       method: "DELETE",
-      headers: {
-        "x-user-role": "admin",
-        "x-user-email": session.user.email,
-      },
+      headers: reqHeaders,
     });
     if (res.ok) {
       revalidatePath("/dashboard/admin/services");

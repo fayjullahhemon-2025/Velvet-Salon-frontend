@@ -9,6 +9,7 @@ import {
 } from "@/lib/api/appointments";
 import { requireAdminSession, requireCustomerSession } from "@/lib/core/server";
 import { getDb } from "@/lib/db";
+import { getTokenFromServer } from "@/lib/getTokenFromServer";
 import type {
   Appointment,
   AppointmentFilterParams,
@@ -122,15 +123,22 @@ export async function createAppointmentAction(input: CreateAppointmentInput) {
 
   // Attempt backend API call first
   try {
+    const token =
+      input?.token || (await getTokenFromServer().catch(() => null));
+    const reqHeaders: Record<string, string> = {
+      "Content-Type": "application/json",
+      "x-user-role": "customer",
+      "x-user-email": customerEmail,
+      "x-user-id": customerId,
+      "x-user-name": customerName,
+    };
+    if (token) {
+      reqHeaders.authorization = `Bearer ${token}`;
+    }
+
     const res = await fetch(`${BACKEND_URL}/api/appointments`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-user-role": "customer",
-        "x-user-email": customerEmail,
-        "x-user-id": customerId,
-        "x-user-name": customerName,
-      },
+      headers: reqHeaders,
       body: JSON.stringify({
         serviceId: String(service._id),
         appointmentDate,
@@ -187,7 +195,10 @@ export async function createAppointmentAction(input: CreateAppointmentInput) {
  * Server action for a customer to cancel their own appointment request.
  * Rule: A customer can cancel only their own pending appointment requests.
  */
-export async function cancelCustomerAppointmentAction(appointmentId: string) {
+export async function cancelCustomerAppointmentAction(
+  appointmentId: string,
+  optionalToken?: string,
+) {
   const session = await requireCustomerSession();
   const customerId = session.user.id;
   const customerEmail = session.user.email;
@@ -225,15 +236,22 @@ export async function cancelCustomerAppointmentAction(appointmentId: string) {
 
   // Try backend first
   try {
+    const token =
+      optionalToken || (await getTokenFromServer().catch(() => null));
+    const reqHeaders: Record<string, string> = {
+      "x-user-role": "customer",
+      "x-user-email": customerEmail,
+      "x-user-id": customerId,
+    };
+    if (token) {
+      reqHeaders.authorization = `Bearer ${token}`;
+    }
+
     const res = await fetch(
       `${BACKEND_URL}/api/appointments/${appointmentId}/cancel`,
       {
         method: "PATCH",
-        headers: {
-          "x-user-role": "customer",
-          "x-user-email": customerEmail,
-          "x-user-id": customerId,
-        },
+        headers: reqHeaders,
       },
     );
     if (res.ok) {
@@ -272,6 +290,7 @@ export async function cancelCustomerAppointmentAction(appointmentId: string) {
 export async function updateAppointmentStatusAction(
   appointmentId: string,
   status: "confirmed" | "cancelled",
+  optionalToken?: string,
 ) {
   const session = await requireAdminSession();
 
@@ -306,15 +325,22 @@ export async function updateAppointmentStatusAction(
 
   // Try backend first
   try {
+    const token =
+      optionalToken || (await getTokenFromServer().catch(() => null));
+    const reqHeaders: Record<string, string> = {
+      "Content-Type": "application/json",
+      "x-user-role": "admin",
+      "x-user-email": session.user.email,
+    };
+    if (token) {
+      reqHeaders.authorization = `Bearer ${token}`;
+    }
+
     const res = await fetch(
       `${BACKEND_URL}/api/appointments/${appointmentId}/status`,
       {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          "x-user-role": "admin",
-          "x-user-email": session.user.email,
-        },
+        headers: reqHeaders,
         body: JSON.stringify({ status }),
       },
     );

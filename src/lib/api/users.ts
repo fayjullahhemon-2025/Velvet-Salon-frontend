@@ -1,5 +1,6 @@
 import { ObjectId } from "mongodb";
 import { getDb } from "@/lib/db";
+import { getTokenFromServer } from "@/lib/getTokenFromServer";
 import type { UserFilterParams, UserProfile } from "@/types/user";
 
 const BACKEND_URL =
@@ -49,11 +50,17 @@ export async function getCurrentUserProfile(
 
   // Try backend first
   try {
+    const token = await getTokenFromServer().catch(() => null);
+    const reqHeaders: Record<string, string> = {
+      ...(userEmail ? { "x-user-email": userEmail } : {}),
+      ...(userId ? { "x-user-id": userId } : {}),
+    };
+    if (token) {
+      reqHeaders.authorization = `Bearer ${token}`;
+    }
+
     const res = await fetch(`${BACKEND_URL}/api/users/profile`, {
-      headers: {
-        ...(userEmail ? { "x-user-email": userEmail } : {}),
-        ...(userId ? { "x-user-id": userId } : {}),
-      },
+      headers: reqHeaders,
       next: { revalidate: 0 },
     });
     if (res.ok) {
@@ -112,12 +119,18 @@ export async function getAllCustomersForAdmin(
   }
 
   try {
+    const token = await getTokenFromServer().catch(() => null);
+    const reqHeaders: Record<string, string> = {
+      "x-user-role": "admin",
+      ...(adminEmail ? { "x-user-email": adminEmail } : {}),
+    };
+    if (token) {
+      reqHeaders.authorization = `Bearer ${token}`;
+    }
+
     const qs = query.toString();
     const res = await fetch(`${BACKEND_URL}/api/users${qs ? `?${qs}` : ""}`, {
-      headers: {
-        "x-user-role": "admin",
-        ...(adminEmail ? { "x-user-email": adminEmail } : {}),
-      },
+      headers: reqHeaders,
       next: { revalidate: 0 },
     });
 
@@ -194,8 +207,14 @@ export async function getUserDetailsForAdmin(
   if (!userId) return null;
 
   try {
+    const token = await getTokenFromServer().catch(() => null);
+    const reqHeaders: Record<string, string> = { "x-user-role": "admin" };
+    if (token) {
+      reqHeaders.authorization = `Bearer ${token}`;
+    }
+
     const res = await fetch(`${BACKEND_URL}/api/users/${userId}`, {
-      headers: { "x-user-role": "admin" },
+      headers: reqHeaders,
       next: { revalidate: 0 },
     });
     if (res.ok) {

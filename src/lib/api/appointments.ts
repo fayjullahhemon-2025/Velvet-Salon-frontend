@@ -1,5 +1,6 @@
 import { ObjectId } from "mongodb";
 import { getDb } from "@/lib/db";
+import { getTokenFromServer } from "@/lib/getTokenFromServer";
 import type { Appointment, AppointmentFilterParams } from "@/types/appointment";
 
 const BACKEND_URL =
@@ -103,11 +104,19 @@ export async function getAppointments(
   if (params?.date) query.set("date", params.date);
 
   try {
+    const token = await getTokenFromServer().catch(() => null);
+    const reqHeaders: Record<string, string> = {
+      ...(headersInit || {}),
+    };
+    if (token) {
+      reqHeaders.authorization = `Bearer ${token}`;
+    }
+
     const qs = query.toString();
     const res = await fetch(
       `${BACKEND_URL}/api/appointments${qs ? `?${qs}` : ""}`,
       {
-        headers: headersInit,
+        headers: reqHeaders,
         next: { revalidate: 0 },
       },
     );
@@ -203,7 +212,14 @@ export async function getAppointmentById(
   if (!id) return null;
 
   try {
+    const token = await getTokenFromServer().catch(() => null);
+    const reqHeaders: Record<string, string> = {};
+    if (token) {
+      reqHeaders.authorization = `Bearer ${token}`;
+    }
+
     const res = await fetch(`${BACKEND_URL}/api/appointments/${id}`, {
+      headers: reqHeaders,
       next: { revalidate: 0 },
     });
     if (res.ok) {

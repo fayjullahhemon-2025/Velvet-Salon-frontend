@@ -24,6 +24,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toggleUserBlockStatusAction } from "@/lib/actions/users";
+import { getTokenFromClient } from "@/lib/getTokenFromClient";
 import type { UserProfile } from "@/types/user";
 
 interface UserDetailsDialogProps {
@@ -47,9 +48,11 @@ export function UserDetailsDialog({
   const handleToggleBlock = (targetBlockState: boolean) => {
     startTransition(async () => {
       try {
+        const token = await getTokenFromClient().catch(() => undefined);
         const res = await toggleUserBlockStatusAction(
           user._id,
           targetBlockState,
+          token,
         );
         if (res.success) {
           toast.success(res.message);

@@ -8,6 +8,7 @@ import {
 } from "@/lib/api/users";
 import { requireAdminSession, requireUserSession } from "@/lib/core/server";
 import { getDb } from "@/lib/db";
+import { getTokenFromServer } from "@/lib/getTokenFromServer";
 import type {
   UpdateProfileInput,
   UserFilterParams,
@@ -56,13 +57,20 @@ export async function updateUserProfileAction(
 
   // Attempt backend API call first
   try {
+    const token =
+      input?.token || (await getTokenFromServer().catch(() => null));
+    const reqHeaders: Record<string, string> = {
+      "Content-Type": "application/json",
+      "x-user-email": userEmail,
+      "x-user-id": userId,
+    };
+    if (token) {
+      reqHeaders.authorization = `Bearer ${token}`;
+    }
+
     const res = await fetch(`${BACKEND_URL}/api/users/profile`, {
       method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        "x-user-email": userEmail,
-        "x-user-id": userId,
-      },
+      headers: reqHeaders,
       body: JSON.stringify({
         name: updateDoc.name,
         image: updateDoc.image,
@@ -160,6 +168,7 @@ export async function fetchCurrentUserProfileAction(): Promise<UserProfile | nul
 export async function toggleUserBlockStatusAction(
   targetUserId: string,
   isBlocked: boolean,
+  optionalToken?: string,
 ): Promise<{ success: boolean; message: string }> {
   const session = await requireAdminSession();
 
@@ -189,14 +198,21 @@ export async function toggleUserBlockStatusAction(
 
   // Attempt backend API call first
   try {
+    const token =
+      optionalToken || (await getTokenFromServer().catch(() => null));
+    const reqHeaders: Record<string, string> = {
+      "Content-Type": "application/json",
+      "x-user-role": "admin",
+      "x-user-email": session.user.email,
+      "x-user-id": session.user.id,
+    };
+    if (token) {
+      reqHeaders.authorization = `Bearer ${token}`;
+    }
+
     const res = await fetch(`${BACKEND_URL}/api/users/${targetUserId}/block`, {
       method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        "x-user-role": "admin",
-        "x-user-email": session.user.email,
-        "x-user-id": session.user.id,
-      },
+      headers: reqHeaders,
       body: JSON.stringify({ isBlocked }),
     });
 

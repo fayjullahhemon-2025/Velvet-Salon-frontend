@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { deleteService } from "@/lib/actions/services";
+import { getTokenFromClient } from "@/lib/getTokenFromClient";
 import type { Service } from "@/types/service";
 
 interface DeleteServiceDialogProps {
@@ -35,7 +36,8 @@ export function DeleteServiceDialog({
 
     setDeleting(true);
     try {
-      await deleteService(service._id);
+      const token = await getTokenFromClient().catch(() => undefined);
+      await deleteService(service._id, token);
       toast.success(`Service "${service.serviceName}" was deleted.`);
       onOpenChange(false);
       onSuccess?.();
