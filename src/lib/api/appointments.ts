@@ -162,6 +162,16 @@ export async function getCustomerAppointments(
 }
 
 /**
+ * Fetch all appointments for Admin management.
+ * Admin can manage all appointments.
+ */
+export async function getAllAppointmentsForAdmin(
+  params?: AppointmentFilterParams,
+): Promise<Appointment[]> {
+  return getAppointments(params, { "x-user-role": "admin" });
+}
+
+/**
  * Fetch a single appointment by ID.
  */
 export async function getAppointmentById(

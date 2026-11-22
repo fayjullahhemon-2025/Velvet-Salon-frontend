@@ -2,10 +2,18 @@
 
 import { ObjectId } from "mongodb";
 import { revalidatePath } from "next/cache";
-import { getAppointments, getBookedSlots } from "@/lib/api/appointments";
+import {
+  getAllAppointmentsForAdmin,
+  getAppointments,
+  getBookedSlots,
+} from "@/lib/api/appointments";
 import { requireAdminSession, requireCustomerSession } from "@/lib/core/server";
 import { getDb } from "@/lib/db";
-import type { Appointment, CreateAppointmentInput } from "@/types/appointment";
+import type {
+  Appointment,
+  AppointmentFilterParams,
+  CreateAppointmentInput,
+} from "@/types/appointment";
 
 const BACKEND_URL =
   process.env.BACKEND_URL ||
@@ -280,6 +288,18 @@ export async function updateAppointmentStatusAction(
     throw new Error("Appointment not found.");
   }
 
+  // Rule: Only pending appointments can be confirmed
+  if (status === "confirmed" && appointment.status !== "pending") {
+    throw new Error(
+      `Only pending appointments can be confirmed. Current status is '${appointment.status}'.`,
+    );
+  }
+
+  // Rule: Cannot cancel an already cancelled appointment
+  if (status === "cancelled" && appointment.status === "cancelled") {
+    throw new Error("This appointment is already cancelled.");
+  }
+
   // Try backend first
   try {
     const res = await fetch(
@@ -299,10 +319,21 @@ export async function updateAppointmentStatusAction(
       revalidatePath("/dashboard/appointments");
       return {
         success: true,
-        message: `Appointment status updated to ${status}.`,
+        message: `Appointment successfully marked as ${status}.`,
       };
     }
-  } catch {
+    const errData = await res.json().catch(() => null);
+    if (errData?.error) {
+      throw new Error(errData.error);
+    }
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message &&
+      !error.message.includes("fetch failed")
+    ) {
+      throw error;
+    }
     // Fallback to direct DB
   }
 
@@ -321,8 +352,19 @@ export async function updateAppointmentStatusAction(
 
   return {
     success: true,
-    message: `Appointment status updated to ${status}.`,
+    message: `Appointment successfully marked as ${status}.`,
   };
+}
+
+/**
+ * Server action for an Admin to fetch all appointments with optional filters.
+ * Rule: Admin can manage all appointments.
+ */
+export async function fetchAdminAppointmentsAction(
+  params?: AppointmentFilterParams,
+): Promise<Appointment[]> {
+  await requireAdminSession();
+  return getAllAppointmentsForAdmin(params);
 }
 
 /**
