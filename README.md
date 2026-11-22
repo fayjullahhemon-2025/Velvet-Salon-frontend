@@ -6,9 +6,9 @@
 
 ## 🌐 Project Links
 
-* **Live Website:** [https://your-live-site-url.com](https://your-live-site-url.com) *(Replace with your actual deployed URL)*
-* **Client Repository:** [https://github.com/your-username/salonbook-client](https://github.com/your-username/salonbook-client) *(Replace with your actual Client Repo URL)*
-* **Server Repository:** [https://github.com/your-username/salonbook-server](https://github.com/your-username/salonbook-server) *(Replace with your actual Server Repo URL)*
+* **Live Website:** [https://velvet-salon-frontend-fawn.vercel.app/](https://velvet-salon-frontend-fawn.vercel.app/) 
+* **Client Repository:** [https://github.com/fayjullahhemon-2025/Velvet-Salon-frontend.git](https://github.com/fayjullahhemon-2025/Velvet-Salon-frontend.git) 
+* **Server Repository:** [https://github.com/fayjullahhemon-2025/Velvet-Salon-backend.git](https://github.com/fayjullahhemon-2025/Velvet-Salon-backend.git) 
 
 ---
 
