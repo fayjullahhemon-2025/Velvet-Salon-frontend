@@ -1,6 +1,9 @@
+"use client";
+
 import { Clock, Mail, MapPin, Phone } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 const LOGO_SRC =
   "https://i.ibb.co.com/PGNhm8rg/Vel-Vet-Chair-1-removebg-preview.png";
@@ -8,8 +11,8 @@ const LOGO_SRC =
 const NAV_LINKS = [
   { label: "Home", href: "/" },
   { label: "Browse Services", href: "/services" },
-  { label: "Sign In", href: "/sign-in" },
-  { label: "Sign Up", href: "/sign-up" },
+  { label: "Sign In", href: "/signin" },
+  { label: "Sign Up", href: "/signup" },
 ] as const;
 
 const SOCIAL_LINKS = [
@@ -37,7 +40,11 @@ const OPENING_HOURS = [
 ] as const;
 
 const Footer = () => {
-  const year = new Date().getFullYear();
+  const [year, setYear] = useState(2026);
+
+  useEffect(() => {
+    setYear(new Date().getFullYear());
+  }, []);
 
   return (
     <footer className="border-t border-border-subtle bg-bg-surface-dark text-fg-inverse">

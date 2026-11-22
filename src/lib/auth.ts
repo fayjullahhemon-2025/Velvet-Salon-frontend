@@ -12,10 +12,36 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
+  user: {
+    additionalFields: {
+      role: {
+        type: ["admin", "customer"],
+        input: true,
+      },
+      isBlocked: {
+        type: "boolean",
+        defaultValue: false,
+        input: false,
+      },
+    },
+  },
   socialProviders: {
-    github: {
-      clientId: process.env.GITHUB_CLIENT_ID as string,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID as string,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+    },
+  },
+  databaseHooks: {
+    user: {
+      create: {
+        before: async (user) => ({
+          data: {
+            ...user,
+            role: "customer",
+            isBlocked: false,
+          },
+        }),
+      },
     },
   },
 });
