@@ -13,6 +13,13 @@ export async function getServerSession() {
     });
     return session;
   } catch (error) {
+    if (
+      (error as { digest?: string })?.digest === "DYNAMIC_SERVER_USAGE" ||
+      (error as { digest?: string })?.digest === "HANGING_PROMISE_REJECTION" ||
+      (error as Error)?.message?.includes("During prerendering")
+    ) {
+      throw error;
+    }
     console.error("Failed to retrieve server session:", error);
     return null;
   }
