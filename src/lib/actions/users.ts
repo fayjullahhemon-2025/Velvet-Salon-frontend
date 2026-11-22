@@ -1,11 +1,15 @@
 "use server";
 
 import { ObjectId } from "mongodb";
+import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 import {
   getAllCustomersForAdmin,
   getCurrentUserProfile,
 } from "@/lib/api/users";
+import { auth } from "@/lib/auth";
 import { requireAdminSession, requireUserSession } from "@/lib/core/server";
 import { getDb } from "@/lib/db";
 import { getTokenFromServer } from "@/lib/getTokenFromServer";
@@ -139,6 +143,20 @@ export async function updateUserProfileAction(
     .collection(collectionName)
     .updateOne({ _id: existing._id }, { $set: updateDoc });
 
+  // Update session on server side so session cookies also reflect the new name
+  try {
+    await auth.api.updateUser({
+      headers: await headers(),
+      body: {
+        name: updateDoc.name as string,
+        ...(updateDoc.image ? { image: updateDoc.image as string } : {}),
+      },
+    });
+  } catch (authErr) {
+    console.warn("auth.api.updateUser sync notice:", authErr);
+  }
+
+  revalidatePath("/", "layout");
   revalidatePath("/dashboard/customer/profile");
   revalidatePath("/dashboard/admin/profile");
   revalidatePath("/dashboard");

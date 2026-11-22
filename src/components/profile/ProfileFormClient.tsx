@@ -29,6 +29,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { updateUserProfileAction } from "@/lib/actions/users";
+import { updateUser } from "@/lib/auth-client";
 import { getTokenFromClient } from "@/lib/getTokenFromClient";
 import type { UserProfile } from "@/types/user";
 
@@ -128,6 +129,16 @@ export function ProfileFormClient({
       try {
         const clientToken = await getTokenFromClient().catch(() => undefined);
         const finalImage = imageUrl.trim() || "";
+
+        // Update Better Auth client session so Navbar useSession() immediately reflects the new name/image
+        try {
+          await updateUser({
+            name: name.trim(),
+            ...(finalImage ? { image: finalImage } : {}),
+          });
+        } catch (authErr) {
+          console.warn("Better Auth client updateUser notice:", authErr);
+        }
 
         const result = await updateUserProfileAction({
           name: name.trim(),
