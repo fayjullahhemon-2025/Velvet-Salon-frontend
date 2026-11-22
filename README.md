@@ -1,36 +1,168 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 💇‍♀️ Velvet Saloon - Salon Appointment Booking Platform
 
-## Getting Started
+**Velvet Saloon** is a full-stack, role-based salon appointment booking platform where customers can explore salon services, view detailed service information, request appointments online, and pay securely via Stripe. Salon administrators have full control over service management, appointment approvals, user access, and payment tracking.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🌐 Project Links
+
+* **Live Website:** [https://your-live-site-url.com](https://your-live-site-url.com) *(Replace with your actual deployed URL)*
+* **Client Repository:** [https://github.com/your-username/salonbook-client](https://github.com/your-username/salonbook-client) *(Replace with your actual Client Repo URL)*
+* **Server Repository:** [https://github.com/your-username/salonbook-server](https://github.com/your-username/salonbook-server) *(Replace with your actual Server Repo URL)*
+
+---
+
+## ✨ Important Features
+
+### 👤 Customer Features
+* **Service Exploration:** Browse active salon services with real-time search by name, category filtering (Haircut & Styling, Hair Coloring, Facial & Skincare, Makeup, Spa & Massage, etc.), and price sorting.
+* **Appointment Booking:** View detailed service descriptions, pricing, and duration, and request appointments by selecting preferred dates and available time slots (with conflict prevention).
+* **Appointment Management:** Track appointment statuses (`Pending`, `Confirmed`, `Cancelled`), view booking history, and cancel pending requests.
+* **Secure Stripe Payments:** Pay for confirmed appointments seamlessly through Stripe Checkout with automated status updates via verified Stripe webhooks.
+* **Customer Dashboard & Profile:** View appointment summary metrics and update personal profile details and profile images.
+
+### 🛡️ Admin Features
+* **Admin Analytics Overview:** Monitor key metrics including total registered customers, active services, pending/confirmed appointments, and successful payments.
+* **Service Management:** Create, update, delete, and toggle the active/inactive status of salon services with direct image uploads hosted via ImgBB.
+* **Appointment Control:** Review all customer appointment requests, confirm pending bookings, or cancel appointments.
+* **User Management:** View registered customers and block/unblock user accounts to enforce platform security.
+* **Transaction Monitoring:** View read-only payment transaction records linked to Stripe Checkout sessions.
+
+### 🔐 Security & Architecture
+* **Role-Based Access Control (RBAC):** Strict client-side route protection and server-side JWT/session verification middleware separating Customer and Admin privileges.
+* **Authentication:** Powered by **Better Auth** supporting Email/Password registration (with strong password validation) and Google OAuth.
+
+---
+
+## 🛠️ Technology Stack
+
+### Frontend (Client)
+* **Framework:** Next.js (App Router)
+* **Language:** TypeScript / JavaScript
+* **Styling & UI:** Tailwind CSS, Responsive Design, Toast Notifications
+* **Authentication:** Better Auth Client & Google OAuth
+
+### Backend (Server)
+* **Runtime & Framework:** Node.js, Express.js
+* **Database:** MongoDB with Mongoose
+* **Authentication & Security:** Better Auth, JWT Verification Middleware
+* **Payments:** Stripe Checkout & Webhooks
+* **Image Hosting:** ImgBB API
+
+---
+
+## ⚙️ Required Environment Variables
+
+Create a `.env.local` file in the **client** root directory and a `.env` file in the **server** root directory. **Never commit `.env` files to GitHub.**
+
+### Client Environment Variables (`.env.local`)
+```env
+NEXT_PUBLIC_API_URL=
+NEXT_PUBLIC_APP_URL=
+BETTER_AUTH_SECRET=
+BETTER_AUTH_URL=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+NEXT_PUBLIC_IMGBB_API_KEY=
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Server Environment Variables (`.env`)
+```env
+PORT=
+NODE_ENV=
+CLIENT_URL=
+MONGODB_URI=
+JWT_SECRET=
+BETTER_AUTH_SECRET=
+BETTER_AUTH_URL=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+IMGBB_API_KEY=
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🚀 Installation & Running Locally
 
-## Learn More
+### Prerequisites
+* Node.js (v18 or higher recommended)
+* npm or yarn
+* MongoDB Atlas URI or local MongoDB instance
+* Stripe Account (Test Mode keys & Stripe CLI for local webhook testing)
+* ImgBB API Key & Google OAuth Credentials
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 1. Clone the Repositories
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+# Clone the client repository
+git clone https://github.com/your-username/salonbook-client.git
 
-## Deploy on Vercel
+# Clone the server repository
+git clone https://github.com/your-username/salonbook-server.git
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 2. Setup & Run the Backend (Server)
+
+```bash
+# Navigate to the server directory
+cd salonbook-server
+
+# Install dependencies
+npm install
+
+# Configure environment variables
+cp .env.example .env
+# (Fill in your MongoDB, Better Auth, Stripe, Google, and ImgBB variables in .env)
+
+# Start the development server
+npm run dev
+```
+The backend server will start on `http://localhost:5000` (or your configured `PORT`).
+
+*(Optional)* **Testing Stripe Webhooks Locally:**
+```bash
+stripe listen --forward-to localhost:5000/api/webhooks/stripe
+```
+
+---
+
+### 3. Setup & Run the Frontend (Client)
+
+```bash
+# Navigate to the client directory
+cd salonbook-client
+
+# Install dependencies
+npm install
+
+# Configure environment variables
+cp .env.example .env.local
+# (Fill in your API URL, Better Auth, Google, ImgBB, and Stripe keys in .env.local)
+
+# Start the Next.js development server
+npm run dev
+```
+The frontend application will run on `http://localhost:3000`.
+
+---
+
+## 🗄️ Database Schema Overview
+
+The application uses four core MongoDB collections:
+1. **`users`**: Managed by Better Auth (`name`, `email`, `image`, `role`, `isBlocked`).
+2. **`services`**: Salon offerings (`serviceName`, `category`, `description`, `price`, `duration`, `image`, `status`, `createdAt`).
+3. **`appointments`**: Customer bookings (`serviceId`, `customerId`, `appointmentDate`, `timeSlot`, `message`, `servicePrice`, `paymentStatus`, `status`, `createdAt`).
+4. **`transactions`**: Verified Stripe payment logs (`appointmentId`, `customerId`, `amount`, `currency`, `stripeSessionId`, `status`, `createdAt`).
+
+---
+
+## 📄 License
+
+This project was built as part of the **SalonBook (Assignment 9 - Category: 002)** technical assessment.
