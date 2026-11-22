@@ -1,17 +1,25 @@
 import Image from "next/image";
 import Link from "next/link";
+import { getBannerImage } from "@/lib/api/banner";
 
-const BANNER_BG_SRC = "https://i.ibb.co.com/dJPGCQ87/img-71.png";
+interface BannerProps {
+  bannerImage?: string;
+}
 
-const Banner = () => {
+const Banner = async ({ bannerImage }: BannerProps = {}) => {
+  const imageSrc =
+    bannerImage ||
+    (await getBannerImage().catch(() => null)) ||
+    "https://i.ibb.co.com/Hptnwr5X/img-71.png";
+
   return (
     <section className="relative flex min-h-screen items-center justify-center overflow-hidden">
       <Image
-        src={BANNER_BG_SRC}
+        src={imageSrc}
         alt="Velvet Saloon interior"
         fill
         sizes="100vw"
-        preload
+        priority
         className="object-cover"
       />
       <div
