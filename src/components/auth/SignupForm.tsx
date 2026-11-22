@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { type FormEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 import GoogleButton from "@/components/auth/GoogleButton";
@@ -54,7 +54,8 @@ type UploadResponse = {
 };
 
 export default function SignupForm() {
-  const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams?.get("callbackUrl");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -198,8 +199,30 @@ export default function SignupForm() {
       }
 
       toast.success("Account created successfully. Welcome to Velvet Saloon!");
-      router.push(getHomeForRole(data?.user));
-      router.refresh();
+      const defaultHome = getHomeForRole(data?.user);
+      let targetUrl = defaultHome;
+
+      const rawCallback = searchParams?.get("callbackUrl");
+      let cleanCallback: string | null = null;
+      if (rawCallback) {
+        try {
+          cleanCallback = decodeURIComponent(rawCallback);
+        } catch {
+          cleanCallback = rawCallback;
+        }
+      }
+
+      if (cleanCallback?.startsWith("/") && !cleanCallback.startsWith("//")) {
+        const isAdminRoute =
+          cleanCallback.startsWith("/dashboard/admin") ||
+          cleanCallback.startsWith("/dashboard/manage-");
+        const userIsAdmin = (data?.user as { role?: string })?.role === "admin";
+        if (!isAdminRoute || userIsAdmin) {
+          targetUrl = cleanCallback;
+        }
+      }
+
+      window.location.href = targetUrl;
     } catch (error) {
       toast.error(
         error instanceof Error
@@ -214,9 +237,13 @@ export default function SignupForm() {
   const handleGoogle = async () => {
     if (submitting || googlePending) return;
     setGooglePending(true);
+    const callbackTarget = callbackUrl
+      ? `/auth/redirect?callbackUrl=${encodeURIComponent(callbackUrl)}`
+      : "/auth/redirect";
+
     const { error } = await signIn.social({
       provider: "google",
-      callbackURL: "/auth/redirect",
+      callbackURL: callbackTarget,
     });
     if (error) {
       setGooglePending(false);
@@ -470,7 +497,11 @@ export default function SignupForm() {
           <p className="text-center text-sm text-fg-muted">
             Already have an account?{" "}
             <Link
-              href="/signin"
+              href={
+                callbackUrl
+                  ? `/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`
+                  : "/signin"
+              }
               className="font-medium text-fg-primary underline-offset-4 hover:underline"
             >
               Sign in

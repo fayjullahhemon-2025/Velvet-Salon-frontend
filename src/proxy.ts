@@ -36,11 +36,8 @@ export async function proxy(request: NextRequest) {
   if (!sessionCookie) {
     // If guest attempts to access service details or any dashboard route, redirect to signin
     if (isServiceDetails || isDashboardRoute) {
-      const callbackUrl = encodeURIComponent(pathname + search);
-      const signinUrl = new URL(
-        `/signin?callbackUrl=${callbackUrl}`,
-        request.url,
-      );
+      const signinUrl = new URL("/signin", request.url);
+      signinUrl.searchParams.set("callbackUrl", pathname + search);
       return NextResponse.redirect(signinUrl);
     }
 
@@ -63,11 +60,8 @@ export async function proxy(request: NextRequest) {
   // If token was invalid or expired, treat as unauthenticated
   if (!session?.user) {
     if (isServiceDetails || isDashboardRoute) {
-      const callbackUrl = encodeURIComponent(pathname + search);
-      const signinUrl = new URL(
-        `/signin?callbackUrl=${callbackUrl}`,
-        request.url,
-      );
+      const signinUrl = new URL("/signin", request.url);
+      signinUrl.searchParams.set("callbackUrl", pathname + search);
       return NextResponse.redirect(signinUrl);
     }
     return NextResponse.next();
@@ -98,7 +92,25 @@ export async function proxy(request: NextRequest) {
   // AUTH ROUTE GUARD (Logged-in users cannot access signin or signup)
   // ---------------------------------------------------------------------------
   if (isAuthRoute) {
-    const destination = isAdmin ? "/dashboard/admin" : "/dashboard";
+    const rawCallback = request.nextUrl.searchParams.get("callbackUrl");
+    let destination = isAdmin ? "/dashboard/admin" : "/dashboard";
+
+    if (rawCallback) {
+      try {
+        const decoded = decodeURIComponent(rawCallback);
+        if (decoded.startsWith("/") && !decoded.startsWith("//")) {
+          const isAdminTarget =
+            decoded.startsWith("/dashboard/admin") ||
+            decoded.startsWith("/dashboard/manage-");
+          if (!isAdminTarget || isAdmin) {
+            destination = decoded;
+          }
+        }
+      } catch {
+        // Fall back to role-based default destination
+      }
+    }
+
     return NextResponse.redirect(new URL(destination, request.url));
   }
 

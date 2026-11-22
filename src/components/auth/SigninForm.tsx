@@ -2,7 +2,7 @@
 
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import { toast } from "sonner";
 import GoogleButton from "@/components/auth/GoogleButton";
@@ -32,7 +32,6 @@ type FieldErrors = {
 };
 
 export default function SigninForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams?.get("callbackUrl");
   const [email, setEmail] = useState("");
@@ -83,18 +82,28 @@ export default function SigninForm() {
       let targetUrl = defaultHome;
 
       // Handle dynamic post-login redirect for callback URLs (e.g. /services/[id])
-      if (callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//")) {
-        const isAdminRoute =
-          callbackUrl.startsWith("/dashboard/admin") ||
-          callbackUrl.startsWith("/dashboard/manage-");
-        const userIsAdmin = (data?.user as { role?: string })?.role === "admin";
-        if (!isAdminRoute || userIsAdmin) {
-          targetUrl = callbackUrl;
+      const rawCallback = searchParams?.get("callbackUrl");
+      let cleanCallback: string | null = null;
+      if (rawCallback) {
+        try {
+          cleanCallback = decodeURIComponent(rawCallback);
+        } catch {
+          cleanCallback = rawCallback;
         }
       }
 
-      router.push(targetUrl);
-      router.refresh();
+      if (cleanCallback?.startsWith("/") && !cleanCallback.startsWith("//")) {
+        const isAdminRoute =
+          cleanCallback.startsWith("/dashboard/admin") ||
+          cleanCallback.startsWith("/dashboard/manage-");
+        const userIsAdmin = (data?.user as { role?: string })?.role === "admin";
+        if (!isAdminRoute || userIsAdmin) {
+          targetUrl = cleanCallback;
+        }
+      }
+
+      // Hard redirect to ensure full page and session state sync across all components
+      window.location.href = targetUrl;
     } catch (error) {
       toast.error(
         error instanceof Error
@@ -207,7 +216,11 @@ export default function SigninForm() {
           <p className="text-center text-sm text-fg-muted">
             New to Velvet Saloon?{" "}
             <Link
-              href="/signup"
+              href={
+                callbackUrl
+                  ? `/signup?callbackUrl=${encodeURIComponent(callbackUrl)}`
+                  : "/signup"
+              }
               className="font-medium text-fg-primary underline-offset-4 hover:underline"
             >
               Create an account

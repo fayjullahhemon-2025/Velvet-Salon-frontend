@@ -1,14 +1,13 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect } from "react";
 import { toast } from "sonner";
 import { signOut, useSession } from "@/lib/auth-client";
 import { getHomeForRole, isUserBlocked } from "@/lib/auth-helpers";
 
 function AuthRedirectContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl");
   const { data: session, isPending } = useSession();
@@ -16,7 +15,7 @@ function AuthRedirectContent() {
   useEffect(() => {
     if (isPending) return;
     if (!session?.user) {
-      router.replace("/signin");
+      window.location.href = "/signin";
       return;
     }
     if (isUserBlocked(session.user)) {
@@ -24,25 +23,34 @@ function AuthRedirectContent() {
       toast.error(
         "Your account has been suspended. Please contact salon support.",
       );
-      router.replace("/signin");
+      window.location.href = "/signin";
       return;
     }
 
     const defaultHome = getHomeForRole(session.user);
     let targetUrl = defaultHome;
 
-    if (callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//")) {
-      const isAdminRoute =
-        callbackUrl.startsWith("/dashboard/admin") ||
-        callbackUrl.startsWith("/dashboard/manage-");
-      const userIsAdmin = (session.user as { role?: string })?.role === "admin";
-      if (!isAdminRoute || userIsAdmin) {
-        targetUrl = callbackUrl;
+    let cleanCallback: string | null = null;
+    if (callbackUrl) {
+      try {
+        cleanCallback = decodeURIComponent(callbackUrl);
+      } catch {
+        cleanCallback = callbackUrl;
       }
     }
 
-    router.replace(targetUrl);
-  }, [isPending, session, router, callbackUrl]);
+    if (cleanCallback?.startsWith("/") && !cleanCallback.startsWith("//")) {
+      const isAdminRoute =
+        cleanCallback.startsWith("/dashboard/admin") ||
+        cleanCallback.startsWith("/dashboard/manage-");
+      const userIsAdmin = (session.user as { role?: string })?.role === "admin";
+      if (!isAdminRoute || userIsAdmin) {
+        targetUrl = cleanCallback;
+      }
+    }
+
+    window.location.href = targetUrl;
+  }, [isPending, session, callbackUrl]);
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-bg-canvas">

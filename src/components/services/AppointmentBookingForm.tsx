@@ -217,7 +217,7 @@ export function AppointmentBookingForm({
         <div className="mt-5 flex flex-col gap-2.5 sm:flex-row">
           <Button
             className="flex-1 bg-bg-accent-brand text-fg-on-accent hover:opacity-90 font-medium"
-            render={<Link href="/dashboard/customer/my-appoinmtments" />}
+            render={<Link href="/dashboard/customer/my-appointments" />}
           >
             View My Appointments
           </Button>
@@ -290,7 +290,7 @@ export function AppointmentBookingForm({
             className="w-full bg-bg-accent-brand text-fg-on-accent hover:opacity-90 font-medium"
             render={
               <Link
-                href={`/signin?callbackUrl=/services/${encodeURIComponent(service._id)}`}
+                href={`/signin?callbackUrl=${encodeURIComponent(`/services/${service._id}`)}`}
               />
             }
           >
@@ -301,7 +301,7 @@ export function AppointmentBookingForm({
             className="w-full border-border-subtle text-fg-primary hover:bg-bg-canvas"
             render={
               <Link
-                href={`/signup?callbackUrl=/services/${encodeURIComponent(service._id)}`}
+                href={`/signup?callbackUrl=${encodeURIComponent(`/services/${service._id}`)}`}
               />
             }
           >
