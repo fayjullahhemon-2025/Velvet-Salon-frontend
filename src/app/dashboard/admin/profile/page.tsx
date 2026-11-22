@@ -10,13 +10,15 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminProfilePage() {
-  try {
-    await requireAdminSession();
-  } catch {
+  const session = await requireAdminSession().catch(() => null);
+  if (!session?.user) {
     redirect("/signin");
   }
 
-  const profile = await getCurrentUserProfile();
+  const profile = await getCurrentUserProfile(
+    session.user.email,
+    session.user.id,
+  );
   if (!profile) {
     redirect("/signin");
   }

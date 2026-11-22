@@ -4,7 +4,7 @@ import { Clock, Filter, Scissors, Search, Sparkles } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,25 +30,14 @@ export function BrowseServicesClient({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Prefer URL search parameter, falling back to initialCategory or 'all'
-  const categoryFromUrl =
+  // Read URL search parameter directly so navigations and category clicks update instantly without requiring a page refresh
+  const selectedCategory =
     searchParams?.get("category") || initialCategory || "all";
 
   const [search, setSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState(categoryFromUrl);
   const [sortOrder, setSortOrder] = useState<
     "default" | "price_asc" | "price_desc" | "duration_asc"
   >("default");
-
-  // React immediately whenever URL search parameters change without requiring a page reload
-  useEffect(() => {
-    const currentParam = searchParams?.get("category");
-    if (currentParam) {
-      setSelectedCategory(currentParam);
-    } else {
-      setSelectedCategory(initialCategory || "all");
-    }
-  }, [searchParams, initialCategory]);
 
   // Filter only active services (guardrail: inactive services are NEVER shown to the public)
   const activeServices = useMemo(() => {
@@ -86,7 +75,6 @@ export function BrowseServicesClient({
   }, [activeServices, search, selectedCategory, sortOrder]);
 
   const handleCategoryChange = (category: string) => {
-    setSelectedCategory(category);
     const params = new URLSearchParams(
       searchParams ? searchParams.toString() : "",
     );
@@ -97,7 +85,7 @@ export function BrowseServicesClient({
     }
     const queryString = params.toString();
     const newUrl = queryString ? `/services?${queryString}` : "/services";
-    router.replace(newUrl, { scroll: false });
+    router.push(newUrl, { scroll: false });
   };
 
   return (
@@ -214,7 +202,7 @@ export function BrowseServicesClient({
               variant="outline"
               onClick={() => {
                 setSearch("");
-                setSelectedCategory("all");
+                handleCategoryChange("all");
                 setSortOrder("default");
               }}
               className="mt-4"

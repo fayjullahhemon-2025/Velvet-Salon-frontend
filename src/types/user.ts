@@ -9,10 +9,17 @@ export interface UserProfile {
   role: UserRole;
   isBlocked: boolean;
   createdAt?: string;
+  totalAppointments?: number;
 }
 
 export interface UpdateProfileInput {
   name?: string;
   image?: string;
   phone?: string;
+}
+
+export interface UserFilterParams {
+  role?: UserRole | "all";
+  status?: "active" | "blocked" | "all";
+  search?: string;
 }

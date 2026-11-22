@@ -2,10 +2,17 @@
 
 import { ObjectId } from "mongodb";
 import { revalidatePath } from "next/cache";
-import { getCurrentUserProfile } from "@/lib/api/users";
-import { requireUserSession } from "@/lib/core/server";
+import {
+  getAllCustomersForAdmin,
+  getCurrentUserProfile,
+} from "@/lib/api/users";
+import { requireAdminSession, requireUserSession } from "@/lib/core/server";
 import { getDb } from "@/lib/db";
-import type { UpdateProfileInput, UserProfile } from "@/types/user";
+import type {
+  UpdateProfileInput,
+  UserFilterParams,
+  UserProfile,
+} from "@/types/user";
 
 const BACKEND_URL =
   process.env.BACKEND_URL ||
@@ -128,7 +135,7 @@ export async function updateUserProfileAction(
   revalidatePath("/dashboard/admin/profile");
   revalidatePath("/dashboard");
 
-  const fresh = await getCurrentUserProfile();
+  const fresh = await getCurrentUserProfile(userEmail, userId);
 
   return {
     success: true,
@@ -141,6 +148,131 @@ export async function updateUserProfileAction(
  * Server action to fetch the current user's profile.
  */
 export async function fetchCurrentUserProfileAction(): Promise<UserProfile | null> {
-  await requireUserSession();
-  return getCurrentUserProfile();
+  const session = await requireUserSession();
+  return getCurrentUserProfile(session.user.email, session.user.id);
+}
+
+/**
+ * Server action for an Admin to block or unblock a customer.
+ * Rule: Admin cannot block themselves.
+ * Blocked users must not be able to access protected platform features.
+ */
+export async function toggleUserBlockStatusAction(
+  targetUserId: string,
+  isBlocked: boolean,
+): Promise<{ success: boolean; message: string }> {
+  const session = await requireAdminSession();
+
+  if (!targetUserId || !ObjectId.isValid(targetUserId)) {
+    throw new Error("Invalid user ID.");
+  }
+
+  // Safety check: Admin cannot block their own account
+  if (session.user.id === targetUserId || session.user.email) {
+    const db = await getDb();
+    const targetUser =
+      (await db
+        .collection("user")
+        .findOne({ _id: new ObjectId(targetUserId) })) ||
+      (await db
+        .collection("users")
+        .findOne({ _id: new ObjectId(targetUserId) }));
+
+    if (
+      targetUser &&
+      (String(targetUser._id) === session.user.id ||
+        targetUser.email === session.user.email)
+    ) {
+      throw new Error("Administrators cannot block their own account.");
+    }
+  }
+
+  // Attempt backend API call first
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/users/${targetUserId}/block`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "x-user-role": "admin",
+        "x-user-email": session.user.email,
+        "x-user-id": session.user.id,
+      },
+      body: JSON.stringify({ isBlocked }),
+    });
+
+    if (res.ok) {
+      const payload = await res.json();
+      revalidatePath("/dashboard/admin/customers");
+      revalidatePath("/dashboard/admin");
+      return {
+        success: true,
+        message:
+          payload.message ||
+          (isBlocked
+            ? "Customer has been blocked."
+            : "Customer has been unblocked."),
+      };
+    }
+
+    const errData = await res.json().catch(() => null);
+    if (errData?.error) {
+      throw new Error(errData.error);
+    }
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message &&
+      !error.message.includes("fetch failed")
+    ) {
+      throw error;
+    }
+    // Fallback to direct DB
+  }
+
+  const db = await getDb();
+  let targetCollection = "user";
+  let targetUser = await db
+    .collection("user")
+    .findOne({ _id: new ObjectId(targetUserId) });
+
+  if (!targetUser) {
+    targetUser = await db
+      .collection("users")
+      .findOne({ _id: new ObjectId(targetUserId) });
+    if (targetUser) targetCollection = "users";
+  }
+
+  if (!targetUser) {
+    throw new Error("Customer account not found.");
+  }
+
+  await db.collection(targetCollection).updateOne(
+    { _id: new ObjectId(targetUserId) },
+    {
+      $set: {
+        isBlocked: Boolean(isBlocked),
+        updatedAt: new Date(),
+      },
+    },
+  );
+
+  revalidatePath("/dashboard/admin/customers");
+  revalidatePath("/dashboard/admin");
+
+  return {
+    success: true,
+    message: isBlocked
+      ? `Customer "${targetUser.name || "Customer"}" has been blocked.`
+      : `Customer "${targetUser.name || "Customer"}" has been unblocked.`,
+  };
+}
+
+/**
+ * Server action for Admin to fetch customers with optional filters.
+ */
+export async function fetchCustomersForAdminAction(
+  params?: UserFilterParams,
+): Promise<UserProfile[]> {
+  const session = await requireAdminSession();
+  return getAllCustomersForAdmin(params, session.user.email);
 }

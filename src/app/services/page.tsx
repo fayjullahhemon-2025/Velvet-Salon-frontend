@@ -11,15 +11,8 @@ export const metadata: Metadata = {
     "Explore haircut & styling, coloring, facial treatments, and spa services at Velvet Saloon.",
 };
 
-interface ServicesPageProps {
-  searchParams?: Promise<{ category?: string }>;
-}
-
-export default async function ServicesPage({
-  searchParams,
-}: ServicesPageProps) {
-  const resolvedParams = searchParams ? await searchParams : {};
-  // Public page only requests active services
+export default async function ServicesPage() {
+  // Public page requests all active services
   const services = await getServices({ status: "active" });
 
   return (
@@ -35,11 +28,7 @@ export default async function ServicesPage({
             </div>
           }
         >
-          <BrowseServicesClient
-            key={resolvedParams.category || "all"}
-            initialServices={services}
-            initialCategory={resolvedParams.category}
-          />
+          <BrowseServicesClient initialServices={services} />
         </Suspense>
       </main>
       <Footer />

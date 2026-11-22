@@ -11,6 +11,8 @@ import { getServiceById } from "@/lib/api/services";
 import { getUserRole } from "@/lib/auth-helpers";
 import { getServerSession } from "@/lib/core/server";
 
+export const instant = false;
+
 interface ServiceDetailsPageProps {
   params: Promise<{ id: string }>;
 }

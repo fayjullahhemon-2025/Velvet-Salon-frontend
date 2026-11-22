@@ -10,13 +10,15 @@ export const metadata: Metadata = {
 };
 
 export default async function CustomerProfilePage() {
-  try {
-    await requireCustomerSession();
-  } catch {
+  const session = await requireCustomerSession().catch(() => null);
+  if (!session?.user) {
     redirect("/signin");
   }
 
-  const profile = await getCurrentUserProfile();
+  const profile = await getCurrentUserProfile(
+    session.user.email,
+    session.user.id,
+  );
   if (!profile) {
     redirect("/signin");
   }
