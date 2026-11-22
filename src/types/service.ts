@@ -43,14 +43,19 @@ export interface ServiceInput {
   status?: ServiceStatus;
 }
 
+export type ServiceSortOption =
+  | "newest"
+  | "price_asc"
+  | "price_desc"
+  | "duration_asc"
+  | "duration_desc"
+  | "name_asc"
+  | "name_desc";
+
 export interface ServiceFilterParams {
   status?: "active" | "inactive" | "all";
   category?: string;
   search?: string;
-  sort?:
-    | "price_asc"
-    | "price_desc"
-    | "duration_asc"
-    | "duration_desc"
-    | "newest";
+  sort?: ServiceSortOption;
+  limit?: number;
 }

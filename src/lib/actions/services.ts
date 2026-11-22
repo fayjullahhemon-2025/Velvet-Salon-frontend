@@ -4,7 +4,19 @@ import { ObjectId } from "mongodb";
 import { revalidatePath } from "next/cache";
 import { requireAdminSession } from "@/lib/core/server";
 import { getDb } from "@/lib/db";
-import type { ServiceInput, ServiceStatus } from "@/types/service";
+import type {
+  Service,
+  ServiceFilterParams,
+  ServiceInput,
+  ServiceSortOption,
+  ServiceStatus,
+} from "@/types/service";
+import {
+  getFeaturedServices,
+  getServiceById,
+  getServices,
+  getSortedServices,
+} from "@/lib/api/services";
 
 const BACKEND_URL =
   process.env.BACKEND_URL ||
