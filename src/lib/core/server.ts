@@ -46,3 +46,18 @@ export async function requireAdminSession() {
   }
   return session;
 }
+
+/**
+ * Enforces that the authenticated user is a customer and is not blocked.
+ * Prevents administrators from booking customer appointments.
+ */
+export async function requireCustomerSession() {
+  const session = await requireUserSession();
+  const role = getUserRole(session.user);
+  if (role === "admin") {
+    throw new Error(
+      "Forbidden: Administrators cannot book customer appointments. Please use a customer account.",
+    );
+  }
+  return session;
+}

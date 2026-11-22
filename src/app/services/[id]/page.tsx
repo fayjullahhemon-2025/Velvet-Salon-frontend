@@ -1,13 +1,15 @@
-import { ArrowLeft, Calendar, CheckCircle2, Clock } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Clock } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AppointmentBookingForm } from "@/components/services/AppointmentBookingForm";
 import Footer from "@/components/shared/Footer";
 import Navbar from "@/components/shared/Navbar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { getServiceById } from "@/lib/api/services";
+import { getUserRole } from "@/lib/auth-helpers";
+import { getServerSession } from "@/lib/core/server";
 
 interface ServiceDetailsPageProps {
   params: Promise<{ id: string }>;
@@ -31,11 +33,17 @@ export default async function ServiceDetailsPage({
   params,
 }: ServiceDetailsPageProps) {
   const { id } = await params;
-  const service = await getServiceById(id);
+  const [service, session] = await Promise.all([
+    getServiceById(id),
+    getServerSession(),
+  ]);
 
   if (!service) {
     notFound();
   }
+
+  const userRole = getUserRole(session?.user);
+  const isLoggedIn = Boolean(session?.user);
 
   return (
     <div className="flex min-h-screen flex-col bg-bg-canvas">
@@ -65,14 +73,22 @@ export default async function ServiceDetailsPage({
                 priority
                 className="object-cover"
               />
-              <div className="absolute top-4 left-4">
+              <div className="absolute top-4 left-4 flex flex-col gap-2">
                 <Badge className="border border-border-subtle bg-bg-surface-card/95 px-3 py-1 text-xs font-semibold text-fg-primary shadow-xs backdrop-blur">
                   {service.category}
                 </Badge>
+                {service.status === "inactive" ? (
+                  <Badge
+                    variant="destructive"
+                    className="text-xs font-semibold"
+                  >
+                    Inactive
+                  </Badge>
+                ) : null}
               </div>
             </div>
 
-            {/* Service Info & Booking Callout */}
+            {/* Service Info & Booking Form Callout */}
             <div className="flex flex-col justify-between p-6 sm:p-8">
               <div className="space-y-4">
                 <div>
@@ -136,22 +152,13 @@ export default async function ServiceDetailsPage({
                 </div>
               </div>
 
-              {/* Booking Action */}
-              <div className="mt-8 border-t border-border-subtle pt-6">
-                <Button
-                  className="w-full bg-bg-accent-brand text-fg-on-accent hover:opacity-90 font-medium py-3 text-base"
-                  render={
-                    <Link
-                      href={`/dashboard/appointments?serviceId=${service._id}`}
-                    />
-                  }
-                >
-                  <Calendar className="size-4 mr-2" aria-hidden />
-                  Book Appointment Now
-                </Button>
-                <p className="mt-2 text-center text-xs text-fg-muted">
-                  Requires a customer account to schedule your appointment slot.
-                </p>
+              {/* Interactive Appointment Booking System */}
+              <div className="mt-8">
+                <AppointmentBookingForm
+                  service={service}
+                  isLoggedIn={isLoggedIn}
+                  userRole={userRole}
+                />
               </div>
             </div>
           </div>
