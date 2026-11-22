@@ -1,10 +1,8 @@
 "use server";
 
 import { ObjectId } from "mongodb";
-import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
 import {
   getAllCustomersForAdmin,
   getCurrentUserProfile,
