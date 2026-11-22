@@ -89,14 +89,10 @@ export const CUSTOMER_NAV_ITEMS: NavItem[] = [
   },
   {
     title: "My Appointments",
-    href: "/dashboard/appointments",
+    href: "/dashboard/customer/my-appointments",
     icon: CalendarCheck,
   },
-  {
-    title: "Browse Services",
-    href: "/services",
-    icon: Sparkles,
-  },
+
   {
     title: "My Profile",
     href: "/dashboard/profile",

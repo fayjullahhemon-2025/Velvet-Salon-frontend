@@ -4,8 +4,8 @@ import { ObjectId } from "mongodb";
 import { revalidatePath } from "next/cache";
 import {
   getAllAppointmentsForAdmin,
-  getAppointments,
   getBookedSlots,
+  getCustomerAppointments,
 } from "@/lib/api/appointments";
 import { requireAdminSession, requireCustomerSession } from "@/lib/core/server";
 import { getDb } from "@/lib/db";
@@ -237,6 +237,8 @@ export async function cancelCustomerAppointmentAction(appointmentId: string) {
       },
     );
     if (res.ok) {
+      revalidatePath("/dashboard/customer/my-appoinmtments");
+      revalidatePath("/dashboard/customer/my-appointments");
       revalidatePath("/dashboard/appointments");
       revalidatePath("/dashboard/admin/appointments");
       return { success: true, message: "Appointment cancelled successfully." };
@@ -255,6 +257,8 @@ export async function cancelCustomerAppointmentAction(appointmentId: string) {
     },
   );
 
+  revalidatePath("/dashboard/customer/my-appoinmtments");
+  revalidatePath("/dashboard/customer/my-appointments");
   revalidatePath("/dashboard/appointments");
   revalidatePath("/dashboard/admin/appointments");
 
@@ -384,5 +388,5 @@ export async function fetchCustomerAppointmentsAction(): Promise<
   Appointment[]
 > {
   const session = await requireCustomerSession();
-  return getAppointments({ customerId: session.user.id });
+  return getCustomerAppointments(session.user.id, session.user.email);
 }

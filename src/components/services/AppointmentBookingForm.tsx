@@ -217,7 +217,7 @@ export function AppointmentBookingForm({
         <div className="mt-5 flex flex-col gap-2.5 sm:flex-row">
           <Button
             className="flex-1 bg-bg-accent-brand text-fg-on-accent hover:opacity-90 font-medium"
-            render={<Link href="/dashboard/appointments" />}
+            render={<Link href="/dashboard/customer/my-appoinmtments" />}
           >
             View My Appointments
           </Button>

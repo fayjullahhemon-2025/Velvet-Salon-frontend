@@ -153,12 +153,35 @@ export async function getAppointments(
 
 /**
  * Fetch a customer's specific appointments.
+ * Matches on customerId or customerEmail to ensure complete retrieval.
  */
 export async function getCustomerAppointments(
   customerId: string,
+  customerEmail?: string,
 ): Promise<Appointment[]> {
-  if (!customerId) return [];
-  return getAppointments({ customerId });
+  if (!customerId && !customerEmail) return [];
+
+  try {
+    const db = await getDb();
+    const orConditions: Record<string, unknown>[] = [];
+    if (customerId) orConditions.push({ customerId: String(customerId) });
+    if (customerEmail)
+      orConditions.push({ customerEmail: String(customerEmail) });
+
+    const query =
+      orConditions.length > 1 ? { $or: orConditions } : orConditions[0] || {};
+
+    const docs = await db
+      .collection("appointments")
+      .find(query)
+      .sort({ createdAt: -1 })
+      .toArray();
+
+    return docs.map(normalizeAppointment);
+  } catch (error) {
+    console.error("Failed to query customer appointments from DB:", error);
+    return getAppointments({ customerId });
+  }
 }
 
 /**
