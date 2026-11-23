@@ -104,7 +104,7 @@ export function AppointmentDetailsDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-2xl bg-bg-surface-card border-border-subtle max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl w-full bg-bg-surface-card border-border-subtle max-h-[90vh] overflow-y-auto overflow-x-hidden p-6">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="text-xl font-bold text-fg-primary flex items-center gap-2">
@@ -275,13 +275,13 @@ export function AppointmentDetailsDialog({
         </div>
 
         {/* Action Buttons */}
-        <DialogFooter className="flex flex-col sm:flex-row items-center gap-2 pt-2 border-t border-border-subtle">
+        <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end items-stretch sm:items-center gap-2.5 pt-4 border-t border-border-subtle">
           <Button
             type="button"
             variant="outline"
             disabled={isPending}
             onClick={onClose}
-            className="w-full sm:w-auto border-border-subtle text-fg-primary"
+            className="w-full sm:w-auto border-border-subtle text-fg-primary text-xs shrink-0"
           >
             Close
           </Button>
@@ -293,12 +293,12 @@ export function AppointmentDetailsDialog({
               variant="destructive"
               disabled={isPending}
               onClick={() => handleUpdateStatus("cancelled")}
-              className="w-full sm:w-auto font-medium"
+              className="w-full sm:w-auto font-medium text-xs whitespace-nowrap shrink-0"
             >
               {isPending && confirmActionType === "cancel" ? (
-                <Loader2 className="size-4 mr-2 animate-spin" />
+                <Loader2 className="size-3.5 mr-1.5 animate-spin" />
               ) : (
-                <XCircle className="size-4 mr-1.5" />
+                <XCircle className="size-3.5 mr-1.5" />
               )}
               Cancel Appointment
             </Button>
@@ -310,12 +310,12 @@ export function AppointmentDetailsDialog({
               type="button"
               disabled={isPending}
               onClick={() => handleUpdateStatus("confirmed")}
-              className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
+              className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs whitespace-nowrap shrink-0"
             >
               {isPending && confirmActionType === "confirm" ? (
-                <Loader2 className="size-4 mr-2 animate-spin" />
+                <Loader2 className="size-3.5 mr-1.5 animate-spin" />
               ) : (
-                <CheckCircle2 className="size-4 mr-1.5" />
+                <CheckCircle2 className="size-3.5 mr-1.5" />
               )}
               Confirm Appointment
             </Button>

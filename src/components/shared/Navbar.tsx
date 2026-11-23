@@ -77,10 +77,11 @@ export default function Navbar() {
             <Link
               key={link.href}
               href={link.href}
-              className={`text-sm font-medium transition-colors hover:text-bg-accent-brand focus-visible:border-border-focus focus-visible:outline-none ${pathname === link.href
+              className={`text-sm font-medium transition-colors hover:text-bg-accent-brand focus-visible:border-border-focus focus-visible:outline-none ${
+                pathname === link.href
                   ? "text-bg-accent-brand"
                   : "text-fg-inverse"
-                }`}
+              }`}
             >
               {link.label}
             </Link>
@@ -209,10 +210,11 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${pathname === link.href
+                className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                  pathname === link.href
                     ? "bg-bg-surface-dark text-bg-accent-brand"
                     : "text-fg-inverse hover:bg-fg-inverse/10"
-                  }`}
+                }`}
                 onClick={() => setIsOpen(false)}
               >
                 {link.label}

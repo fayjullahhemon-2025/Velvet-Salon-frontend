@@ -89,7 +89,7 @@ export function CustomerAppointmentDetailsDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-xl bg-bg-surface-card border-border-subtle max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-xl w-full bg-bg-surface-card border-border-subtle max-h-[90vh] overflow-y-auto overflow-x-hidden p-6">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="text-xl font-bold text-fg-primary flex items-center gap-2">
@@ -244,13 +244,13 @@ export function CustomerAppointmentDetailsDialog({
         </div>
 
         {/* Action Buttons */}
-        <DialogFooter className="flex flex-col sm:flex-row items-center gap-2 pt-2 border-t border-border-subtle">
+        <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end items-stretch sm:items-center gap-2.5 pt-4 border-t border-border-subtle">
           <Button
             type="button"
             variant="outline"
             disabled={isPending}
             onClick={onClose}
-            className="w-full sm:w-auto border-border-subtle text-fg-primary text-xs"
+            className="w-full sm:w-auto border-border-subtle text-fg-primary text-xs shrink-0"
           >
             Close
           </Button>
@@ -262,7 +262,7 @@ export function CustomerAppointmentDetailsDialog({
               variant="destructive"
               disabled={isPending}
               onClick={handleCancel}
-              className="w-full sm:w-auto text-xs font-semibold"
+              className="w-full sm:w-auto text-xs font-semibold whitespace-nowrap shrink-0"
             >
               {isPending ? (
                 <Loader2 className="size-3.5 mr-1.5 animate-spin" />
@@ -278,7 +278,7 @@ export function CustomerAppointmentDetailsDialog({
             <Button
               type="button"
               onClick={() => onPayNow?.(appointment)}
-              className="w-full sm:w-auto bg-bg-accent-brand text-fg-on-accent hover:opacity-90 font-semibold text-xs"
+              className="w-full sm:w-auto bg-bg-accent-brand text-fg-on-accent hover:opacity-90 font-semibold text-xs whitespace-nowrap shrink-0"
             >
               <CreditCard className="size-3.5 mr-1.5" />
               Pay Now (${appointment.servicePrice.toFixed(2)})
