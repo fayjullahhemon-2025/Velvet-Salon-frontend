@@ -20,11 +20,28 @@ function AuthRedirectContent() {
     }
     if (isUserBlocked(session.user)) {
       signOut();
+      try {
+        sessionStorage.setItem(
+          "velvet_auth_toast_error",
+          "Your account has been suspended. Please contact salon support.",
+        );
+      } catch {
+        // Ignore sessionStorage access errors
+      }
       toast.error(
         "Your account has been suspended. Please contact salon support.",
       );
       window.location.href = "/signin";
       return;
+    }
+
+    try {
+      sessionStorage.setItem(
+        "velvet_auth_toast",
+        "Signed in successfully with Google.",
+      );
+    } catch {
+      // Ignore sessionStorage access errors
     }
 
     const defaultHome = getHomeForRole(session.user);
@@ -47,6 +64,14 @@ function AuthRedirectContent() {
       if (!isAdminRoute || userIsAdmin) {
         targetUrl = cleanCallback;
       }
+    }
+
+    try {
+      const url = new URL(targetUrl, window.location.origin);
+      url.searchParams.set("auth_toast", "google_success");
+      targetUrl = url.pathname + url.search + url.hash;
+    } catch {
+      // Ignore URL parsing errors
     }
 
     window.location.href = targetUrl;

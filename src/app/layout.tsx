@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
+import { AuthToastListener } from "@/components/shared/AuthToastListener";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col bg-bg-canvas text-fg-primary">
         {children}
         <Toaster position="top-center" richColors closeButton />
+        <AuthToastListener />
       </body>
     </html>
   );
