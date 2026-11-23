@@ -21,7 +21,7 @@ Email: [customer@velvet.com]
 Password: [Emon1234]
 
 # Blocked customer
-Email: [customer@velvet.com]
+Email: [blocked@velvet.com]
 Password: [Emon1234]
 ---
 ## ✨ Important Features
