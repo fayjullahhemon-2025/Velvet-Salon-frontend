@@ -1,6 +1,7 @@
 import { ShieldAlert } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { BlockedUserSignOutButton } from "@/components/auth/BlockedUserSignOutButton";
 import { AppSidebar } from "@/components/shared/AppSidebar";
 import { Button } from "@/components/ui/button";
 import {
@@ -57,12 +58,7 @@ export default async function DashboardLayout({
                 >
                   Return to Home
                 </Button>
-                <Button
-                  className="w-full bg-bg-accent-brand text-fg-on-accent text-xs font-semibold"
-                  render={<Link href="/api/auth/signout" />}
-                >
-                  Sign Out
-                </Button>
+                <BlockedUserSignOutButton />
               </div>
             </div>
           </div>
