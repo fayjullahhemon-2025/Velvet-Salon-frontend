@@ -2,14 +2,15 @@ import { ArrowLeft, CheckCircle2, Clock } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { AppointmentBookingForm } from "@/components/services/AppointmentBookingForm";
 import Footer from "@/components/shared/Footer";
 import Navbar from "@/components/shared/Navbar";
 import { Badge } from "@/components/ui/badge";
 import { getServiceById } from "@/lib/api/services";
-import { getUserRole } from "@/lib/auth-helpers";
+import { getUserRole, isUserBlocked } from "@/lib/auth-helpers";
 import { getServerSession } from "@/lib/core/server";
+import { getDb } from "@/lib/db";
 
 export const instant = false;
 
@@ -35,17 +36,40 @@ export default async function ServiceDetailsPage({
   params,
 }: ServiceDetailsPageProps) {
   const { id } = await params;
-  const [service, session] = await Promise.all([
-    getServiceById(id),
-    getServerSession(),
-  ]);
+  const session = await getServerSession();
 
+  // Route Protection: Unauthenticated guests are redirected to sign-in with dynamic callbackUrl
+  if (!session?.user) {
+    redirect(`/signin?callbackUrl=/services/${id}`);
+  }
+
+  // Route Protection: Blocked users are locked out and redirected to /dashboard (Account Suspended)
+  let isBlocked = isUserBlocked(session.user);
+  if (!isBlocked && session.user.email) {
+    try {
+      const db = await getDb();
+      const liveUser =
+        (await db.collection("user").findOne({ email: session.user.email })) ||
+        (await db.collection("users").findOne({ email: session.user.email }));
+      if (liveUser?.isBlocked) {
+        isBlocked = true;
+      }
+    } catch {
+      // Continue
+    }
+  }
+
+  if (isBlocked) {
+    redirect("/dashboard");
+  }
+
+  const service = await getServiceById(id);
   if (!service) {
     notFound();
   }
 
-  const userRole = getUserRole(session?.user);
-  const isLoggedIn = Boolean(session?.user);
+  const userRole = getUserRole(session.user);
+  const isLoggedIn = true;
 
   return (
     <div className="flex min-h-screen flex-col bg-bg-canvas">

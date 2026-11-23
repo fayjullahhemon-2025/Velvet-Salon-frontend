@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { getDb } from "@/lib/db";
 
 export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
@@ -69,8 +70,23 @@ export async function proxy(request: NextRequest) {
 
   const user = session.user;
   const userRole = (user as { role?: string }).role || "customer";
-  const isBlocked = Boolean((user as { isBlocked?: boolean }).isBlocked);
+  let isBlocked = Boolean((user as { isBlocked?: boolean }).isBlocked);
   const isAdmin = userRole === "admin";
+
+  // Check live database to ensure newly blocked users cannot bypass via cached sessions
+  if (!isBlocked && user.email) {
+    try {
+      const db = await getDb();
+      const liveUser =
+        (await db.collection("user").findOne({ email: user.email })) ||
+        (await db.collection("users").findOne({ email: user.email }));
+      if (liveUser?.isBlocked) {
+        isBlocked = true;
+      }
+    } catch {
+      // Ignore DB lookup error in proxy
+    }
+  }
 
   // ---------------------------------------------------------------------------
   // BLOCKED USER ENFORCEMENT

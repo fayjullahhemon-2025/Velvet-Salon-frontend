@@ -11,7 +11,19 @@
 * **Server Repository:** [https://github.com/fayjullahhemon-2025/Velvet-Salon-backend.git](https://github.com/fayjullahhemon-2025/Velvet-Salon-backend.git) 
 
 ---
+## Demo users:
+# Admin
+Email: [admin@velvet.com]
+Password: [Admin1234]
 
+# Customer
+Email: [customer@velvet.com]
+Password: [Emon1234]
+
+# Blocked customer
+Email: [customer@velvet.com]
+Password: [Emon1234]
+---
 ## ✨ Important Features
 
 ### 👤 Customer Features
