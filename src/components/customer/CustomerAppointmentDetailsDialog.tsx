@@ -101,10 +101,10 @@ export function CustomerAppointmentDetailsDialog({
               <Badge
                 className={`text-xs font-semibold px-2.5 py-0.5 ${
                   appointment.status === "confirmed"
-                    ? "bg-emerald-600 text-white"
+                    ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
                     : appointment.status === "cancelled"
-                      ? "bg-neutral-600 text-white"
-                      : "bg-amber-600 text-white"
+                      ? "bg-neutral-800 text-neutral-400 border border-neutral-700"
+                      : "bg-amber-500/20 text-amber-400 border border-amber-500/30"
                 }`}
               >
                 {appointment.status.toUpperCase()}
@@ -114,7 +114,7 @@ export function CustomerAppointmentDetailsDialog({
                 variant="outline"
                 className={`text-xs font-semibold px-2.5 py-0.5 ${
                   appointment.paymentStatus === "paid"
-                    ? "border-emerald-600 text-emerald-600 bg-emerald-50"
+                    ? "border-emerald-500/40 text-emerald-400 bg-emerald-500/10"
                     : "border-border-subtle text-fg-muted bg-bg-canvas"
                 }`}
               >
@@ -204,8 +204,8 @@ export function CustomerAppointmentDetailsDialog({
 
           {/* Status Context Alerts */}
           {appointment.status === "pending" ? (
-            <div className="rounded-xl border border-amber-600/20 bg-amber-50/60 p-3 text-xs text-amber-800 flex items-start gap-2">
-              <Info className="size-4 text-amber-600 shrink-0 mt-0.5" />
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-400 flex items-start gap-2">
+              <Info className="size-4 text-amber-400 shrink-0 mt-0.5" />
               <div>
                 <span className="font-semibold block">
                   Pending Confirmation
@@ -218,8 +218,8 @@ export function CustomerAppointmentDetailsDialog({
             </div>
           ) : appointment.status === "confirmed" &&
             appointment.paymentStatus === "unpaid" ? (
-            <div className="rounded-xl border border-emerald-600/20 bg-emerald-50/60 p-3 text-xs text-emerald-800 flex items-start gap-2">
-              <Info className="size-4 text-emerald-600 shrink-0 mt-0.5" />
+            <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs text-emerald-400 flex items-start gap-2">
+              <Info className="size-4 text-emerald-400 shrink-0 mt-0.5" />
               <div>
                 <span className="font-semibold block">Confirmed Booking</span>
                 <span>
@@ -229,8 +229,8 @@ export function CustomerAppointmentDetailsDialog({
               </div>
             </div>
           ) : appointment.status === "cancelled" ? (
-            <div className="rounded-xl border border-neutral-300 bg-neutral-100 p-3 text-xs text-neutral-700 flex items-start gap-2">
-              <XCircle className="size-4 text-neutral-500 shrink-0 mt-0.5" />
+            <div className="rounded-xl border border-border-subtle bg-bg-canvas/50 p-3 text-xs text-fg-muted flex items-start gap-2">
+              <XCircle className="size-4 text-fg-muted shrink-0 mt-0.5" />
               <div>
                 <span className="font-semibold block">
                   Cancelled Appointment

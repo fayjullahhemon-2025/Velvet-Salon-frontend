@@ -233,8 +233,8 @@ export function ProfileFormClient({
                 variant="outline"
                 className={`text-xs font-semibold px-3 py-1 ${
                   profile.isBlocked
-                    ? "border-red-600 text-red-600 bg-red-50"
-                    : "border-emerald-600 text-emerald-600 bg-emerald-50"
+                    ? "border-red-500/40 text-red-400 bg-red-500/10"
+                    : "border-emerald-500/40 text-emerald-400 bg-emerald-500/10"
                 }`}
               >
                 <CheckCircle2 className="size-3.5 mr-1" />

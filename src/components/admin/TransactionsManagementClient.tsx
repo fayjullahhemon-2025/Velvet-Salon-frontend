@@ -343,8 +343,8 @@ export function TransactionsManagementClient({
                           variant="outline"
                           className={`text-[10px] font-semibold px-2 py-0.5 ${
                             tx.status === "paid"
-                              ? "border-emerald-600 text-emerald-600 bg-emerald-50"
-                              : "border-red-500 text-red-500 bg-red-50"
+                              ? "border-emerald-500/40 text-emerald-400 bg-emerald-500/10"
+                              : "border-red-500/40 text-red-400 bg-red-500/10"
                           }`}
                         >
                           {tx.status.toUpperCase()}

@@ -116,10 +116,10 @@ export function AppointmentDetailsDialog({
               <Badge
                 className={`text-xs font-semibold px-2.5 py-0.5 ${
                   appointment.status === "confirmed"
-                    ? "bg-emerald-600 text-white"
+                    ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
                     : appointment.status === "cancelled"
-                      ? "bg-neutral-600 text-white"
-                      : "bg-amber-600 text-white"
+                      ? "bg-neutral-800 text-neutral-400 border border-neutral-700"
+                      : "bg-amber-500/20 text-amber-400 border border-amber-500/30"
                 }`}
               >
                 {appointment.status.toUpperCase()}
@@ -129,7 +129,7 @@ export function AppointmentDetailsDialog({
                 variant="outline"
                 className={`text-xs font-semibold px-2.5 py-0.5 ${
                   appointment.paymentStatus === "paid"
-                    ? "border-emerald-600 text-emerald-600 bg-emerald-50"
+                    ? "border-emerald-500/40 text-emerald-400 bg-emerald-500/10"
                     : "border-border-subtle text-fg-muted bg-bg-canvas"
                 }`}
               >
