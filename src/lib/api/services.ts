@@ -104,12 +104,8 @@ export async function getServiceById(id: string): Promise<Service | null> {
         return normalizeService(payload.data);
       }
     }
-    // If backend rejects due to unauthenticated (401) or blocked user (403), enforce rejection
-    if (res.status === 401 || res.status === 403) {
-      return null;
-    }
   } catch {
-    // Fallback directly to shared database if backend server is unreachable
+    // Fallback directly to shared database
   }
 
   try {
